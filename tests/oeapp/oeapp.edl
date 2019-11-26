@@ -1,0 +1,12 @@
+// Copyright (c) Open Enclave SDK contributors.
+// Licensed under the MIT License.
+
+enclave {
+
+    include "openenclave/internal/appsig.h"
+
+    trusted {
+        public void dump_appid_ecall();
+        public void verify_ecall([in, count=1] struct _oe_appsig* appsig);
+    };
+};
