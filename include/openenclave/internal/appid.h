@@ -8,6 +8,8 @@
 #define OE_APPID_SIGNER_SIZE 32
 #define OE_MAX_PUBKEY_SIZE 1024
 
+#include <openenclave/bits/types.h>
+
 /* An appid injected by oesignext tool. */
 typedef struct _oe_appid
 {

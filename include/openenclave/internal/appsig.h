@@ -9,6 +9,8 @@
 #define OE_APPSIG_HASH_SIZE 32
 #define OE_APPSIG_MAGIC 0x06ee1812
 
+#include <openenclave/bits/types.h>
+
 /* An appsig injected by oesignext tool. */
 typedef struct _oe_appsig
 {
