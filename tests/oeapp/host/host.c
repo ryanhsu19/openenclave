@@ -51,6 +51,8 @@ int main(int argc, const char* argv[])
     /* Load the signature file. */
     OE_TEST(_load_signature_file(argv[2], &appsig) == 0);
 
+    OE_TEST(appsig.magic == OE_APPSIG_MAGIC);
+
     result = oe_create_oeapp_enclave(argv[1], type, flags, NULL, 0, &enclave);
     OE_TEST(result == OE_OK);
 
