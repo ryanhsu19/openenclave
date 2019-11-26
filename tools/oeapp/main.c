@@ -913,7 +913,7 @@ int main(int argc, const char* argv[])
         "    appid - build and insert an appid structure into an enclave.\n"
         "    appsig - build and create a signature file for a given hash.\n"
         "    dumpappid - dump an enclave appid sructure.\n"
-        "    dumpappsig - dump the contents of a signature file.\n"
+        "    dumpappsig - dump a signature file.\n"
         "\n";
     int ret = 1;
 
