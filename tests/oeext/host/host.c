@@ -1,9 +1,9 @@
 // Copyright (c) Open Enclave SDK contributors.
 // Licensed under the MIT License.
 
+#include <openenclave/ext/signature.h>
 #include <openenclave/host.h>
 #include <openenclave/internal/files.h>
-#include <openenclave/internal/signature.h>
 #include <openenclave/internal/tests.h>
 #include <stdio.h>
 #include <stdlib.h>

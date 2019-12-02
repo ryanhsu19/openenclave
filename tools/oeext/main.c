@@ -5,11 +5,11 @@
 #include <ctype.h>
 #include <limits.h>
 #include <openenclave/bits/defs.h>
+#include <openenclave/ext/extension.h>
+#include <openenclave/ext/signature.h>
 #include <openenclave/internal/elf.h>
-#include <openenclave/internal/extension.h>
 #include <openenclave/internal/files.h>
 #include <openenclave/internal/raise.h>
-#include <openenclave/internal/signature.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

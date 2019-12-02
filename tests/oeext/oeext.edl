@@ -3,7 +3,7 @@
 
 enclave
 {
-    include "openenclave/internal/signature.h"
+    include "openenclave/ext/signature.h"
 
     trusted
     {

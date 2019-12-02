@@ -2,9 +2,9 @@
 // Licensed under the MIT License.
 
 #include <openenclave/enclave.h>
-#include <openenclave/internal/extension.h>
+#include <openenclave/ext/extension.h>
+#include <openenclave/ext/signature.h>
 #include <openenclave/internal/rsa.h>
-#include <openenclave/internal/signature.h>
 #include <openenclave/internal/tests.h>
 #include <stdio.h>
 #include <string.h>
