@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 #include <openenclave/enclave.h>
-#include <openenclave/ext/extension.h>
+#include <openenclave/ext/policy.h>
 #include <openenclave/ext/signature.h>
 #include <openenclave/internal/rsa.h>
 #include <openenclave/internal/tests.h>
@@ -10,8 +10,8 @@
 #include <string.h>
 #include "oeext_t.h"
 
-/* The 'oeext extension' subcommand fills this in. */
-OE_EXTENSION_DECLARATION oe_extension_t extension;
+/* The 'oeext policy' subcommand fills this in. */
+OE_EXT_POLICY_DECLARATION oe_ext_policy_t policy;
 
 void hex_dump(const uint8_t* data, size_t size)
 {
@@ -36,34 +36,30 @@ void dump_string(const uint8_t* s, size_t n)
     printf("\"");
 }
 
-void dump_extension(oe_extension_t* extension)
+void dump_policy(oe_ext_policy_t* policy)
 {
-    printf("extension =\n");
+    printf("policy =\n");
     printf("{\n");
 
     printf("    pubkey=");
-    dump_string(extension->pubkey_data, extension->pubkey_size);
+    dump_string(policy->pubkey_data, policy->pubkey_size);
     printf("\n");
 
-    printf("    pubkey_size=%llu\n", extension->pubkey_size);
+    printf("    pubkey_size=%llu\n", policy->pubkey_size);
 
     printf("    signer=");
-    hex_dump(extension->signer, sizeof(extension->signer));
+    hex_dump(policy->signer, sizeof(policy->signer));
     printf("\n");
-
-    printf("    isvprodid=%u\n", extension->isvprodid);
-
-    printf("    isvsvn=%u\n", extension->isvsvn);
 
     printf("}\n");
 }
 
-void dump_extension_ecall(void)
+void dump_policy_ecall(void)
 {
-    dump_extension(&extension);
+    dump_policy(&policy);
 }
 
-void dump_signature(const oe_signature_t* signature)
+void dump_signature(const oe_ext_signature_t* signature)
 {
     printf("signature =\n");
     printf("{\n");
@@ -76,10 +72,6 @@ void dump_signature(const oe_signature_t* signature)
     hex_dump(signature->hash, sizeof(signature->hash));
     printf("\n");
 
-    printf("    isvprodid=%u\n", signature->isvprodid);
-
-    printf("    isvsvn=%u\n", signature->isvsvn);
-
     printf("    signature=");
     hex_dump(signature->signature, sizeof(signature->signature));
     printf("\n");
@@ -87,39 +79,27 @@ void dump_signature(const oe_signature_t* signature)
     printf("}\n");
 }
 
-void verify_ecall(struct _oe_signature* signature)
+void verify_ecall(struct _oe_ext_signature* signature)
 {
     /* Dump the structure. */
     dump_signature(signature);
 
-    printf("STUFF=%u:%u\n", signature->isvprodid, extension.isvprodid);
-    OE_TEST(signature->isvprodid == extension.isvprodid);
-    OE_TEST(signature->isvsvn == extension.isvsvn);
     OE_TEST(
-        memcmp(signature->signer, extension.signer, sizeof signature->signer) ==
+        memcmp(signature->signer, policy.signer, sizeof signature->signer) ==
         0);
 
     oe_rsa_public_key_t pubkey;
 
     OE_TEST(
         oe_rsa_public_key_read_pem(
-            &pubkey, extension.pubkey_data, extension.pubkey_size) == OE_OK);
-
-    /* Recompute the composite hash. */
-    oe_sha256_context_t ctx;
-    OE_SHA256 sha256;
-    oe_sha256_init(&ctx);
-    oe_sha256_update(&ctx, signature->hash, sizeof signature->hash);
-    oe_sha256_update(&ctx, &extension.isvprodid, sizeof extension.isvprodid);
-    oe_sha256_update(&ctx, &extension.isvsvn, sizeof extension.isvsvn);
-    oe_sha256_final(&ctx, &sha256);
+            &pubkey, policy.pubkey_data, policy.pubkey_size) == OE_OK);
 
     OE_TEST(
         oe_rsa_public_key_verify(
             &pubkey,
             OE_HASH_TYPE_SHA256,
-            sha256.buf,
-            sizeof sha256,
+            signature->hash,
+            sizeof(signature->hash),
             signature->signature,
             sizeof signature->signature) == OE_OK);
 

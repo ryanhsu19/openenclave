@@ -5,7 +5,7 @@
 #include <ctype.h>
 #include <limits.h>
 #include <openenclave/bits/defs.h>
-#include <openenclave/ext/extension.h>
+#include <openenclave/ext/policy.h>
 #include <openenclave/ext/signature.h>
 #include <openenclave/internal/elf.h>
 #include <openenclave/internal/files.h>
@@ -292,21 +292,6 @@ done:
     return result;
 }
 
-static int _string_to_uint16(const char* str, uint16_t* value)
-{
-    char* end;
-    unsigned long x;
-
-    x = strtoul(str, &end, 10);
-
-    if (!end || *end || x > SHRT_MAX)
-        return -1;
-
-    *value = (uint16_t)x;
-
-    return 0;
-}
-
 static void _hex_dump(const uint8_t* data, size_t size)
 {
     for (size_t i = 0; i < size; i++)
@@ -337,21 +322,7 @@ static int _get_opt(
     return -1;
 }
 
-static int _get_opt_uint16(
-    int* argc,
-    const char* argv[],
-    const char* name,
-    uint16_t* opt)
-{
-    const char* str;
-
-    if (_get_opt(argc, argv, name, &str) != 0)
-        return -1;
-
-    return _string_to_uint16(str, opt);
-}
-
-static void _dump_signature(const oe_signature_t* signature)
+static void _dump_signature(const oe_ext_signature_t* signature)
 {
     printf("signature =\n");
     printf("{\n");
@@ -365,10 +336,6 @@ static void _dump_signature(const oe_signature_t* signature)
     printf("    hash=");
     _hex_dump(signature->hash, sizeof(signature->hash));
     printf("\n");
-
-    printf("    isvprodid=%u\n", signature->isvprodid);
-
-    printf("    isvsvn=%u\n", signature->isvsvn);
 
     printf("    signature=");
     _hex_dump(signature->signature, sizeof(signature->signature));
@@ -394,24 +361,20 @@ static void _dump_string(const uint8_t* s, size_t n)
     printf("\"");
 }
 
-static void _dump_extension(oe_extension_t* extension)
+static void _dump_policy(oe_ext_policy_t* policy)
 {
-    printf("extension =\n");
+    printf("policy =\n");
     printf("{\n");
 
     printf("    pubkey=");
-    _dump_string(extension->pubkey_data, extension->pubkey_size);
+    _dump_string(policy->pubkey_data, policy->pubkey_size);
     printf("\n");
 
-    printf("    pubkey_size=%lu\n", extension->pubkey_size);
+    printf("    pubkey_size=%lu\n", policy->pubkey_size);
 
     printf("    signer=");
-    _hex_dump(extension->signer, sizeof(extension->signer));
+    _hex_dump(policy->signer, sizeof(policy->signer));
     printf("\n");
-
-    printf("    isvprodid=%u\n", extension->isvprodid);
-
-    printf("    isvsvn=%u\n", extension->isvsvn);
 
     printf("}\n");
 }
@@ -420,13 +383,12 @@ static int _extend_main(int argc, const char* argv[])
 {
     static const char _usage[] =
         "\n"
-        "Usage: %s extend pubkey=? isvprodid=? isvsvn=? enclave=? symbol=?\n"
+        "Usage: %s extend pubkey=? enclave=? symbol=?\n"
         "\n"
         "\n";
     typedef struct
     {
         const char* pubkey;
-        uint16_t isvprodid;
         uint16_t isvsvn;
         const char* enclave;
         const char* symbol;
@@ -445,7 +407,7 @@ static int _extend_main(int argc, const char* argv[])
     int ret = 1;
 
     /* Check and collect arguments. */
-    if (argc != 7)
+    if (argc != 5)
     {
         fprintf(stderr, _usage, arg0);
         goto done;
@@ -456,14 +418,6 @@ static int _extend_main(int argc, const char* argv[])
         /* Handle pubkey option. */
         if (_get_opt(&argc, argv, "pubkey", &opts.pubkey) != 0)
             _err("missing pubkey option");
-
-        /* Get isvprodid option. */
-        if (_get_opt_uint16(&argc, argv, "isvprodid", &opts.isvprodid) != 0)
-            _err("missing isvprodid option");
-
-        /* Get isvsvn option. */
-        if (_get_opt_uint16(&argc, argv, "isvsvn", &opts.isvsvn) != 0)
-            _err("missing isvsvn option");
 
         /* Handle enclave option. */
         if (_get_opt(&argc, argv, "enclave", &opts.enclave) != 0)
@@ -492,7 +446,7 @@ static int _extend_main(int argc, const char* argv[])
         _err("cannot find symbol: %s", opts.symbol);
 
     /* Check the size of the symbol. */
-    if (sym.st_size != sizeof(oe_extension_t))
+    if (sym.st_size != sizeof(oe_ext_policy_t))
         _err("symbol %s is wrong size", opts.symbol);
 
     /* Find the offset within the ELF file of this symbol. */
@@ -500,7 +454,7 @@ static int _extend_main(int argc, const char* argv[])
         _err("cannot locate symbol %s in %s", opts.symbol, opts.enclave);
 
     /* Make sure the entire symbol falls within the file image. */
-    if (file_offset + sizeof(oe_extension_t) >= elf.size)
+    if (file_offset + sizeof(oe_ext_policy_t) >= elf.size)
         _err("unexpected");
 
     /* Get the address of the symbol. */
@@ -510,7 +464,7 @@ static int _extend_main(int argc, const char* argv[])
     if (_load_pem_file(opts.pubkey, &pem_data, &pem_size) != 0)
         _err("failed to load keyfile: %s", opts.pubkey);
 
-    if (pem_size >= OE_MAX_PUBKEY_SIZE)
+    if (pem_size >= OE_EXT_POLICY_PUBKEY_SIZE)
         _err("key is too big: %s", opts.pubkey);
 
     /* Initialize the RSA private key. */
@@ -519,7 +473,7 @@ static int _extend_main(int argc, const char* argv[])
 
     /* Update the 'extend' symbol. */
     {
-        oe_extension_t extend;
+        oe_ext_policy_t extend;
         uint8_t modulus[MODULUS_SIZE];
         uint8_t exponent[EXPONENT_SIZE];
 
@@ -551,12 +505,6 @@ static int _extend_main(int argc, const char* argv[])
             if (memcmp(exponent, buf, sizeof(buf)) != 0)
                 _err("bad value for pubkey exponent (must be 3)");
         }
-
-        /* extend.isvprodid */
-        extend.isvprodid = opts.isvprodid;
-
-        /* extend.isvisvsvn */
-        extend.isvsvn = opts.isvsvn;
 
         /* Compute the hash of the public key. */
         _compute_signer(modulus, exponent, extend.signer);
@@ -644,7 +592,7 @@ static int _dumpext_main(int argc, const char* argv[])
         _err("cannot find symbol: %s", opts.symbol);
 
     /* Check the size of the symbol. */
-    if (sym.st_size != sizeof(oe_extension_t))
+    if (sym.st_size != sizeof(oe_ext_policy_t))
         _err("symbol %s is wrong size", opts.symbol);
 
     /* Find the offset within the ELF file of this symbol. */
@@ -652,20 +600,20 @@ static int _dumpext_main(int argc, const char* argv[])
         _err("cannot locate symbol %s in %s", opts.symbol, opts.enclave);
 
     /* Make sure the entire symbol falls within the file image. */
-    if (file_offset + sizeof(oe_extension_t) >= elf.size)
+    if (file_offset + sizeof(oe_ext_policy_t) >= elf.size)
         _err("unexpected");
 
     /* Get the address of the symbol. */
     symbol_address = (uint8_t*)elf.data + file_offset;
 
-    /* Print the 'extension' symbol. */
+    /* Print the 'policy' symbol. */
     {
-        oe_extension_t extension;
+        oe_ext_policy_t policy;
 
-        /* Update the extension structure in the ELF file. */
-        memcpy(&extension, symbol_address, sizeof(extension));
+        /* Update the policy structure in the ELF file. */
+        memcpy(&policy, symbol_address, sizeof(policy));
 
-        _dump_extension(&extension);
+        _dump_policy(&policy);
     }
 
     ret = 0;
@@ -680,17 +628,14 @@ done:
 
 static int _sign_main(int argc, const char* argv[])
 {
-    static const char _usage[] =
-        "\n"
-        "Usage: %s sign privkey=? hash=? isvprodid=? isvsvn=? sigfile=?\n"
-        "\n"
-        "\n";
+    static const char _usage[] = "\n"
+                                 "Usage: %s sign privkey=? hash=? sigfile=?\n"
+                                 "\n"
+                                 "\n";
     typedef struct
     {
         const char* privkey;
         uint8_t hash[OE_SHA256_SIZE];
-        uint16_t isvprodid;
-        uint16_t isvsvn;
         const char* sigfile;
     } opts_t;
     opts_t opts;
@@ -700,12 +645,12 @@ static int _sign_main(int argc, const char* argv[])
     bool rsa_private_initialized = false;
     oe_rsa_public_key_t pubkey;
     bool pubkey_initialized = false;
-    oe_signature_t sign;
+    oe_ext_signature_t sign;
 
     int ret = 1;
 
     /* Check usage. */
-    if (argc != 7)
+    if (argc != 5)
     {
         fprintf(stderr, _usage, arg0);
         goto done;
@@ -728,14 +673,6 @@ static int _sign_main(int argc, const char* argv[])
                 _err("bad hash option: %s", ascii);
         }
 
-        /* Get isvprodid option. */
-        if (_get_opt_uint16(&argc, argv, "isvprodid", &opts.isvprodid) != 0)
-            _err("missing isvprodid option");
-
-        /* Get isvsvn option. */
-        if (_get_opt_uint16(&argc, argv, "isvsvn", &opts.isvsvn) != 0)
-            _err("missing isvsvn option");
-
         /* Get the sigfile option. */
         if (_get_opt(&argc, argv, "sigfile", &opts.sigfile) != 0)
             _err("missing sigfile option");
@@ -757,15 +694,7 @@ static int _sign_main(int argc, const char* argv[])
 
     /* Perform the signing operation. */
     {
-        oe_sha256_context_t context;
-        OE_SHA256 hash;
         uint8_t signature[SIGNATURE_SIZE];
-
-        oe_sha256_init(&context);
-        oe_sha256_update(&context, opts.hash, sizeof(opts.hash));
-        oe_sha256_update(&context, &opts.isvprodid, sizeof(opts.isvprodid));
-        oe_sha256_update(&context, &opts.isvsvn, sizeof(opts.isvsvn));
-        oe_sha256_final(&context, &hash);
 
         /* Create the signature from the hash. */
         {
@@ -774,8 +703,8 @@ static int _sign_main(int argc, const char* argv[])
             if (oe_rsa_private_key_sign(
                     &rsa_private,
                     OE_HASH_TYPE_SHA256,
-                    hash.buf,
-                    sizeof(hash),
+                    opts.hash,
+                    sizeof(opts.hash),
                     signature,
                     &signature_size) != 0)
             {
@@ -794,7 +723,7 @@ static int _sign_main(int argc, const char* argv[])
             memset(&sign, 0, sizeof(sign));
 
             /* sign.magic */
-            sign.magic = OE_SIGNATURE_MAGIC;
+            sign.magic = OE_EXT_SIGNATURE_MAGIC;
 
             /* sign.modulus */
             if (_get_modulus(&pubkey, modulus) != 0)
@@ -810,12 +739,6 @@ static int _sign_main(int argc, const char* argv[])
             /* sign.hash */
             assert(sizeof sign.hash == sizeof opts.hash);
             memcpy(sign.hash, opts.hash, sizeof sign.hash);
-
-            /* sign.isvprodid */
-            sign.isvprodid = opts.isvprodid;
-
-            /* sign.isvsvn */
-            sign.isvsvn = opts.isvsvn;
 
             assert(sizeof sign.signature == sizeof signature);
             memcpy(sign.signature, signature, sizeof sign.signature);
@@ -883,15 +806,15 @@ static int _dumpsig_main(int argc, const char* argv[])
     }
 
     /* Check the size of the file. */
-    if (size != sizeof(oe_signature_t))
+    if (size != sizeof(oe_ext_signature_t))
         _err("file is wrong size: %s", opts.sigfile);
 
     /* Check the magic number. */
-    if (((oe_signature_t*)data)->magic != OE_SIGNATURE_MAGIC)
+    if (((oe_ext_signature_t*)data)->magic != OE_EXT_SIGNATURE_MAGIC)
         _err("magic number is wrong: %s", opts.sigfile);
 
     /* Dump the fields in the file. */
-    _dump_signature(((oe_signature_t*)data));
+    _dump_signature(((oe_ext_signature_t*)data));
 
     ret = 0;
 

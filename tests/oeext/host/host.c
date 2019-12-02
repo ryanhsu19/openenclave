@@ -10,7 +10,7 @@
 #include <string.h>
 #include "oeext_u.h"
 
-int _load_signature_file(const char* path, oe_signature_t* signature)
+int _load_signature_file(const char* path, oe_ext_signature_t* signature)
 {
     int ret = -1;
     void* data = NULL;
@@ -19,10 +19,10 @@ int _load_signature_file(const char* path, oe_signature_t* signature)
     if (__oe_load_file(path, 0, &data, &size) != 0)
         goto done;
 
-    if (size != sizeof(oe_signature_t))
+    if (size != sizeof(oe_ext_signature_t))
         goto done;
 
-    memcpy(signature, data, sizeof(oe_signature_t));
+    memcpy(signature, data, sizeof(oe_ext_signature_t));
 
     ret = 0;
 
@@ -40,7 +40,7 @@ int main(int argc, const char* argv[])
     oe_enclave_t* enclave;
     const uint32_t flags = oe_get_create_flags();
     const oe_enclave_type_t type = OE_ENCLAVE_TYPE_SGX;
-    oe_signature_t signature;
+    oe_ext_signature_t signature;
 
     if (argc != 3)
     {
@@ -51,12 +51,12 @@ int main(int argc, const char* argv[])
     /* Load the signature file. */
     OE_TEST(_load_signature_file(argv[2], &signature) == 0);
 
-    OE_TEST(signature.magic == OE_SIGNATURE_MAGIC);
+    OE_TEST(signature.magic == OE_EXT_SIGNATURE_MAGIC);
 
     result = oe_create_oeext_enclave(argv[1], type, flags, NULL, 0, &enclave);
     OE_TEST(result == OE_OK);
 
-    result = dump_extension_ecall(enclave);
+    result = dump_policy_ecall(enclave);
     OE_TEST(result == OE_OK);
 
     result = verify_ecall(enclave, &signature);

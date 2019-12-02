@@ -23,10 +23,8 @@ add_test(tests/oeext_pubkey
 add_test(tests/oeext_extend
     oeext extend
     pubkey=${PUBKEY}
-    isvprodid=${PRODID}
-    isvsvn=${SVN}
     enclave=${CMAKE_CURRENT_BINARY_DIR}/enc/oeext_enc
-    symbol=extension)
+    symbol=policy)
 
 set(HASH 042aea10a0f14f2d391373599be69d53a75dde9951fc3d3cd10b6100aa7a9f24)
 set(SIGFILE ${CMAKE_CURRENT_BINARY_DIR}/sign)
@@ -35,8 +33,6 @@ add_test(tests/oeext_sign
     oeext sign
     privkey=${PRIVKEY}
     hash=${HASH}
-    isvprodid=${PRODID}
-    isvsvn=${SVN}
     sigfile=${SIGFILE})
 
 add_enclave_test(tests/oeext oeext_host oeext_enc ${SIGFILE})
