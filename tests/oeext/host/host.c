@@ -2,15 +2,15 @@
 // Licensed under the MIT License.
 
 #include <openenclave/host.h>
-#include <openenclave/internal/appsig.h>
 #include <openenclave/internal/files.h>
+#include <openenclave/internal/signature.h>
 #include <openenclave/internal/tests.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "oeapp_u.h"
+#include "oeext_u.h"
 
-int _load_signature_file(const char* path, oe_appsig_t* appsig)
+int _load_signature_file(const char* path, oe_signature_t* signature)
 {
     int ret = -1;
     void* data = NULL;
@@ -19,10 +19,10 @@ int _load_signature_file(const char* path, oe_appsig_t* appsig)
     if (__oe_load_file(path, 0, &data, &size) != 0)
         goto done;
 
-    if (size != sizeof(oe_appsig_t))
+    if (size != sizeof(oe_signature_t))
         goto done;
 
-    memcpy(appsig, data, sizeof(oe_appsig_t));
+    memcpy(signature, data, sizeof(oe_signature_t));
 
     ret = 0;
 
@@ -40,7 +40,7 @@ int main(int argc, const char* argv[])
     oe_enclave_t* enclave;
     const uint32_t flags = oe_get_create_flags();
     const oe_enclave_type_t type = OE_ENCLAVE_TYPE_SGX;
-    oe_appsig_t appsig;
+    oe_signature_t signature;
 
     if (argc != 3)
     {
@@ -49,23 +49,23 @@ int main(int argc, const char* argv[])
     }
 
     /* Load the signature file. */
-    OE_TEST(_load_signature_file(argv[2], &appsig) == 0);
+    OE_TEST(_load_signature_file(argv[2], &signature) == 0);
 
-    OE_TEST(appsig.magic == OE_APPSIG_MAGIC);
+    OE_TEST(signature.magic == OE_SIGNATURE_MAGIC);
 
-    result = oe_create_oeapp_enclave(argv[1], type, flags, NULL, 0, &enclave);
+    result = oe_create_oeext_enclave(argv[1], type, flags, NULL, 0, &enclave);
     OE_TEST(result == OE_OK);
 
-    result = dump_appid_ecall(enclave);
+    result = dump_extension_ecall(enclave);
     OE_TEST(result == OE_OK);
 
-    result = verify_ecall(enclave, &appsig);
+    result = verify_ecall(enclave, &signature);
     OE_TEST(result == OE_OK);
 
     result = oe_terminate_enclave(enclave);
     OE_TEST(result == OE_OK);
 
-    printf("=== passed all tests (oeapp)\n");
+    printf("=== passed all tests (oeext)\n");
 
     return 0;
 }

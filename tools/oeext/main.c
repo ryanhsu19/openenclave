@@ -5,11 +5,11 @@
 #include <ctype.h>
 #include <limits.h>
 #include <openenclave/bits/defs.h>
-#include <openenclave/internal/appid.h>
-#include <openenclave/internal/appsig.h>
 #include <openenclave/internal/elf.h>
+#include <openenclave/internal/extension.h>
 #include <openenclave/internal/files.h>
 #include <openenclave/internal/raise.h>
+#include <openenclave/internal/signature.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -351,27 +351,27 @@ static int _get_opt_uint16(
     return _string_to_uint16(str, opt);
 }
 
-static void _dump_appsig(const oe_appsig_t* appsig)
+static void _dump_signature(const oe_signature_t* signature)
 {
-    printf("appsig =\n");
+    printf("signature =\n");
     printf("{\n");
 
-    printf("    magic=%08x\n", appsig->magic);
+    printf("    magic=%08x\n", signature->magic);
 
     printf("    signer=");
-    _hex_dump(appsig->signer, sizeof(appsig->signer));
+    _hex_dump(signature->signer, sizeof(signature->signer));
     printf("\n");
 
     printf("    hash=");
-    _hex_dump(appsig->hash, sizeof(appsig->hash));
+    _hex_dump(signature->hash, sizeof(signature->hash));
     printf("\n");
 
-    printf("    isvprodid=%u\n", appsig->isvprodid);
+    printf("    isvprodid=%u\n", signature->isvprodid);
 
-    printf("    isvsvn=%u\n", appsig->isvsvn);
+    printf("    isvsvn=%u\n", signature->isvsvn);
 
     printf("    signature=");
-    _hex_dump(appsig->signature, sizeof(appsig->signature));
+    _hex_dump(signature->signature, sizeof(signature->signature));
     printf("\n");
 
     printf("}\n");
@@ -394,33 +394,33 @@ static void _dump_string(const uint8_t* s, size_t n)
     printf("\"");
 }
 
-static void _dump_appid(oe_appid_t* appid)
+static void _dump_extension(oe_extension_t* extension)
 {
-    printf("appid =\n");
+    printf("extension =\n");
     printf("{\n");
 
     printf("    pubkey=");
-    _dump_string(appid->pubkey_data, appid->pubkey_size);
+    _dump_string(extension->pubkey_data, extension->pubkey_size);
     printf("\n");
 
-    printf("    pubkey_size=%lu\n", appid->pubkey_size);
+    printf("    pubkey_size=%lu\n", extension->pubkey_size);
 
     printf("    signer=");
-    _hex_dump(appid->signer, sizeof(appid->signer));
+    _hex_dump(extension->signer, sizeof(extension->signer));
     printf("\n");
 
-    printf("    isvprodid=%u\n", appid->isvprodid);
+    printf("    isvprodid=%u\n", extension->isvprodid);
 
-    printf("    isvsvn=%u\n", appid->isvsvn);
+    printf("    isvsvn=%u\n", extension->isvsvn);
 
     printf("}\n");
 }
 
-static int _appid_main(int argc, const char* argv[])
+static int _extend_main(int argc, const char* argv[])
 {
     static const char _usage[] =
         "\n"
-        "Usage: oeapp appid pubkey=? isvprodid=? isvsvn=? enclave=? symbol=?\n"
+        "Usage: %s extend pubkey=? isvprodid=? isvsvn=? enclave=? symbol=?\n"
         "\n"
         "\n";
     typedef struct
@@ -447,7 +447,7 @@ static int _appid_main(int argc, const char* argv[])
     /* Check and collect arguments. */
     if (argc != 7)
     {
-        fprintf(stderr, _usage);
+        fprintf(stderr, _usage, arg0);
         goto done;
     }
 
@@ -492,7 +492,7 @@ static int _appid_main(int argc, const char* argv[])
         _err("cannot find symbol: %s", opts.symbol);
 
     /* Check the size of the symbol. */
-    if (sym.st_size != sizeof(oe_appid_t))
+    if (sym.st_size != sizeof(oe_extension_t))
         _err("symbol %s is wrong size", opts.symbol);
 
     /* Find the offset within the ELF file of this symbol. */
@@ -500,7 +500,7 @@ static int _appid_main(int argc, const char* argv[])
         _err("cannot locate symbol %s in %s", opts.symbol, opts.enclave);
 
     /* Make sure the entire symbol falls within the file image. */
-    if (file_offset + sizeof(oe_appid_t) >= elf.size)
+    if (file_offset + sizeof(oe_extension_t) >= elf.size)
         _err("unexpected");
 
     /* Get the address of the symbol. */
@@ -517,25 +517,25 @@ static int _appid_main(int argc, const char* argv[])
     if (oe_rsa_public_key_read_pem(&pubkey, pem_data, pem_size) != OE_OK)
         _err("failed to initialize private key");
 
-    /* Update the 'appid' symbol. */
+    /* Update the 'extend' symbol. */
     {
-        oe_appid_t appid;
+        oe_extension_t extend;
         uint8_t modulus[MODULUS_SIZE];
         uint8_t exponent[EXPONENT_SIZE];
 
-        memset(&appid, 0, sizeof(appid));
+        memset(&extend, 0, sizeof(extend));
 
-        /* appid.pubkey_data */
-        memcpy(appid.pubkey_data, pem_data, pem_size);
+        /* extend.pubkey_data */
+        memcpy(extend.pubkey_data, pem_data, pem_size);
 
-        /* appid.pubkey_size */
-        appid.pubkey_size = (uint64_t)pem_size;
+        /* extend.pubkey_size */
+        extend.pubkey_size = (uint64_t)pem_size;
 
-        /* appid.modulus */
+        /* extend.modulus */
         if (_get_modulus(&pubkey, modulus) != 0)
             _err("failed to get modulus");
 
-        /* appid.exponent */
+        /* extend.exponent */
         if (_get_exponent(&pubkey, exponent) != 0)
             _err("failed to get exponent");
 
@@ -552,17 +552,17 @@ static int _appid_main(int argc, const char* argv[])
                 _err("bad value for pubkey exponent (must be 3)");
         }
 
-        /* appid.isvprodid */
-        appid.isvprodid = opts.isvprodid;
+        /* extend.isvprodid */
+        extend.isvprodid = opts.isvprodid;
 
-        /* appid.isvisvsvn */
-        appid.isvsvn = opts.isvsvn;
+        /* extend.isvisvsvn */
+        extend.isvsvn = opts.isvsvn;
 
         /* Compute the hash of the public key. */
-        _compute_signer(modulus, exponent, appid.signer);
+        _compute_signer(modulus, exponent, extend.signer);
 
-        /* Update the appid structure in the ELF file. */
-        memcpy(symbol_address, &appid, sizeof(appid));
+        /* Update the extend structure in the ELF file. */
+        memcpy(symbol_address, &extend, sizeof(extend));
     }
 
     /* Rewrite the file. */
@@ -588,10 +588,10 @@ done:
     return ret;
 }
 
-static int _dumpappid_main(int argc, const char* argv[])
+static int _dumpext_main(int argc, const char* argv[])
 {
     static const char _usage[] = "\n"
-                                 "Usage: oeapp dumpappid enclave=? symbol=?\n"
+                                 "Usage: %s dumpext enclave=? symbol=?\n"
                                  "\n"
                                  "\n";
     typedef struct
@@ -611,7 +611,7 @@ static int _dumpappid_main(int argc, const char* argv[])
     /* Check and collect arguments. */
     if (argc != 4)
     {
-        fprintf(stderr, _usage);
+        fprintf(stderr, _usage, arg0);
         goto done;
     }
 
@@ -644,7 +644,7 @@ static int _dumpappid_main(int argc, const char* argv[])
         _err("cannot find symbol: %s", opts.symbol);
 
     /* Check the size of the symbol. */
-    if (sym.st_size != sizeof(oe_appid_t))
+    if (sym.st_size != sizeof(oe_extension_t))
         _err("symbol %s is wrong size", opts.symbol);
 
     /* Find the offset within the ELF file of this symbol. */
@@ -652,20 +652,20 @@ static int _dumpappid_main(int argc, const char* argv[])
         _err("cannot locate symbol %s in %s", opts.symbol, opts.enclave);
 
     /* Make sure the entire symbol falls within the file image. */
-    if (file_offset + sizeof(oe_appid_t) >= elf.size)
+    if (file_offset + sizeof(oe_extension_t) >= elf.size)
         _err("unexpected");
 
     /* Get the address of the symbol. */
     symbol_address = (uint8_t*)elf.data + file_offset;
 
-    /* Print the 'appid' symbol. */
+    /* Print the 'extension' symbol. */
     {
-        oe_appid_t appid;
+        oe_extension_t extension;
 
-        /* Update the appid structure in the ELF file. */
-        memcpy(&appid, symbol_address, sizeof(appid));
+        /* Update the extension structure in the ELF file. */
+        memcpy(&extension, symbol_address, sizeof(extension));
 
-        _dump_appid(&appid);
+        _dump_extension(&extension);
     }
 
     ret = 0;
@@ -678,11 +678,11 @@ done:
     return ret;
 }
 
-static int _appsig_main(int argc, const char* argv[])
+static int _sign_main(int argc, const char* argv[])
 {
     static const char _usage[] =
         "\n"
-        "Usage: oeapp appsig privkey=? hash=? isvprodid=? isvsvn=? sigfile=?\n"
+        "Usage: %s sign privkey=? hash=? isvprodid=? isvsvn=? sigfile=?\n"
         "\n"
         "\n";
     typedef struct
@@ -700,14 +700,14 @@ static int _appsig_main(int argc, const char* argv[])
     bool rsa_private_initialized = false;
     oe_rsa_public_key_t pubkey;
     bool pubkey_initialized = false;
-    oe_appsig_t appsig;
+    oe_signature_t sign;
 
     int ret = 1;
 
     /* Check usage. */
     if (argc != 7)
     {
-        fprintf(stderr, _usage);
+        fprintf(stderr, _usage, arg0);
         goto done;
     }
 
@@ -786,44 +786,44 @@ static int _appsig_main(int argc, const char* argv[])
                 _err("bad resulting signature size");
         }
 
-        /* Initialize the appsig structure. */
+        /* Initialize the sign structure. */
         {
             uint8_t modulus[MODULUS_SIZE];
             uint8_t exponent[EXPONENT_SIZE];
 
-            memset(&appsig, 0, sizeof(appsig));
+            memset(&sign, 0, sizeof(sign));
 
-            /* appsig.magic */
-            appsig.magic = OE_APPSIG_MAGIC;
+            /* sign.magic */
+            sign.magic = OE_SIGNATURE_MAGIC;
 
-            /* appsig.modulus */
+            /* sign.modulus */
             if (_get_modulus(&pubkey, modulus) != 0)
                 _err("failed to get modulus");
 
-            /* appsig.exponent */
+            /* sign.exponent */
             if (_get_exponent(&pubkey, exponent) != 0)
                 _err("failed to get exponent");
 
-            /* appsig.signer */
-            _compute_signer(modulus, exponent, appsig.signer);
+            /* sign.signer */
+            _compute_signer(modulus, exponent, sign.signer);
 
-            /* appsig.hash */
-            assert(sizeof appsig.hash == sizeof opts.hash);
-            memcpy(appsig.hash, opts.hash, sizeof appsig.hash);
+            /* sign.hash */
+            assert(sizeof sign.hash == sizeof opts.hash);
+            memcpy(sign.hash, opts.hash, sizeof sign.hash);
 
-            /* appsig.isvprodid */
-            appsig.isvprodid = opts.isvprodid;
+            /* sign.isvprodid */
+            sign.isvprodid = opts.isvprodid;
 
-            /* appsig.isvsvn */
-            appsig.isvsvn = opts.isvsvn;
+            /* sign.isvsvn */
+            sign.isvsvn = opts.isvsvn;
 
-            assert(sizeof appsig.signature == sizeof signature);
-            memcpy(appsig.signature, signature, sizeof appsig.signature);
+            assert(sizeof sign.signature == sizeof signature);
+            memcpy(sign.signature, signature, sizeof sign.signature);
         }
     }
 
     /* Write the signature file. */
-    if (_write_file(opts.sigfile, &appsig, sizeof appsig) != 0)
+    if (_write_file(opts.sigfile, &sign, sizeof sign) != 0)
     {
         _err("failed to write: %s", opts.sigfile);
         goto done;
@@ -845,10 +845,10 @@ done:
     return ret;
 }
 
-static int _dumpappsig_main(int argc, const char* argv[])
+static int _dumpsig_main(int argc, const char* argv[])
 {
     static const char _usage[] = "\n"
-                                 "Usage: oeapp dumpappsig sigfile=?\n"
+                                 "Usage: %s dumpsig sigfile=?\n"
                                  "\n"
                                  "\n";
     typedef struct
@@ -864,7 +864,7 @@ static int _dumpappsig_main(int argc, const char* argv[])
     /* Check usage. */
     if (argc != 3)
     {
-        fprintf(stderr, _usage);
+        fprintf(stderr, _usage, arg0);
         goto done;
     }
 
@@ -883,15 +883,15 @@ static int _dumpappsig_main(int argc, const char* argv[])
     }
 
     /* Check the size of the file. */
-    if (size != sizeof(oe_appsig_t))
+    if (size != sizeof(oe_signature_t))
         _err("file is wrong size: %s", opts.sigfile);
 
     /* Check the magic number. */
-    if (((oe_appsig_t*)data)->magic != OE_APPSIG_MAGIC)
+    if (((oe_signature_t*)data)->magic != OE_SIGNATURE_MAGIC)
         _err("magic number is wrong: %s", opts.sigfile);
 
     /* Dump the fields in the file. */
-    _dump_appsig(((oe_appsig_t*)data));
+    _dump_signature(((oe_signature_t*)data));
 
     ret = 0;
 
@@ -907,13 +907,13 @@ int main(int argc, const char* argv[])
 {
     static const char _usage[] =
         "\n"
-        "Usage: oeapp command options...\n"
+        "Usage: %s command options...\n"
         "\n"
         "Commands:\n"
-        "    appid - build and insert an appid structure into an enclave.\n"
-        "    appsig - build and create a signature file for a given hash.\n"
-        "    dumpappid - dump an enclave appid sructure.\n"
-        "    dumpappsig - dump a signature file.\n"
+        "    extend - build and insert an extend structure into an enclave.\n"
+        "    sign - build and create a signature file for a given hash.\n"
+        "    dumpext - dump an enclave extend sructure.\n"
+        "    dumpsig - dump a signature file.\n"
         "\n";
     int ret = 1;
 
@@ -921,31 +921,31 @@ int main(int argc, const char* argv[])
 
     if (argc < 2)
     {
-        fprintf(stderr, _usage);
+        fprintf(stderr, _usage, argv[0]);
         goto done;
     }
 
     /* Disable logging noise to standard output. */
     setenv("OE_LOG_LEVEL", "NONE", 1);
 
-    if (strcmp(argv[1], "appid") == 0)
+    if (strcmp(argv[1], "extend") == 0)
     {
-        ret = _appid_main(argc, argv);
+        ret = _extend_main(argc, argv);
         goto done;
     }
-    else if (strcmp(argv[1], "appsig") == 0)
+    else if (strcmp(argv[1], "sign") == 0)
     {
-        ret = _appsig_main(argc, argv);
+        ret = _sign_main(argc, argv);
         goto done;
     }
-    if (strcmp(argv[1], "dumpappid") == 0)
+    if (strcmp(argv[1], "dumpext") == 0)
     {
-        ret = _dumpappid_main(argc, argv);
+        ret = _dumpext_main(argc, argv);
         goto done;
     }
-    else if (strcmp(argv[1], "dumpappsig") == 0)
+    else if (strcmp(argv[1], "dumpsig") == 0)
     {
-        ret = _dumpappsig_main(argc, argv);
+        ret = _dumpsig_main(argc, argv);
         goto done;
     }
     else

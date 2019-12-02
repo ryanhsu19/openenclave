@@ -1,0 +1,14 @@
+// Copyright (c) Open Enclave SDK contributors.
+// Licensed under the MIT License.
+
+enclave
+{
+    include "openenclave/internal/signature.h"
+
+    trusted
+    {
+        public void dump_extension_ecall();
+
+        public void verify_ecall([in, count=1] struct _oe_signature* sig);
+    };
+};
