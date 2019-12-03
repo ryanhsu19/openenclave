@@ -9,6 +9,9 @@ enclave
     {
         public void dump_policy_ecall();
 
-        public void verify_ecall([in, count=1] struct _oe_ext_signature* sig);
+        public void verify_ecall(
+            [in, count=1] struct _oe_ext_signature* sig,
+            [in, count=hash_size] uint8_t* hash,
+            size_t hash_size);
     };
 };

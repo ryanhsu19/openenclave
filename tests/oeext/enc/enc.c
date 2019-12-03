@@ -81,12 +81,21 @@ void dump_signature(const oe_ext_signature_t* signature)
     printf("}\n");
 }
 
-void verify_ecall(struct _oe_ext_signature* signature)
+void verify_ecall(
+    struct _oe_ext_signature* signature,
+    uint8_t* hash,
+    size_t hash_size)
 {
+    oe_result_t r;
+
+    printf("HHHH=%zu\n", hash_size);
+    hex_dump(hash, hash_size);
+
     /* Dump the structure. */
     dump_signature(signature);
 
-    OE_TEST(oe_ext_verify_signature(signature, &policy) == OE_OK);
+    r = oe_ext_verify_signature(signature, &policy, hash, hash_size);
+    OE_TEST(r == OE_OK);
 
     printf("=== VERIFY OKAY\n");
 }

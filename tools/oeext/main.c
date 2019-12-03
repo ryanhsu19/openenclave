@@ -60,24 +60,27 @@ done:
     return ret;
 }
 
-static bool _valid_ascii_hash(const char* value)
+int _ascii_to_hash(const char* ascii_hash, uint8_t hash[HASH_SIZE])
 {
-    bool ret = false;
-    const char* p = value;
+    const char* p = ascii_hash;
 
-    while (isxdigit(*p))
-        p++;
+    memset(hash, 0, HASH_SIZE);
 
-    if (*p != '\0')
-        goto done;
+    if (strlen(ascii_hash) != 2 * HASH_SIZE)
+        return -1;
 
-    if (p - value != 64)
-        goto done;
+    for (size_t i = 0; i < HASH_SIZE; i++)
+    {
+        unsigned int byte;
 
-    ret = true;
+        if (sscanf(p, "%02x", &byte) != 1)
+            return -1;
 
-done:
-    return ret;
+        hash[i] = (uint8_t)byte;
+        p += 2;
+    }
+
+    return 0;
 }
 
 static uint64_t _find_file_offset(elf64_t* elf, uint64_t vaddr)
@@ -106,26 +109,6 @@ static uint64_t _find_file_offset(elf64_t* elf, uint64_t vaddr)
     }
 
     return (uint64_t)-1;
-}
-
-int _ascii_to_hash(const char* ascii_hash, uint8_t hash[HASH_SIZE])
-{
-    const char* p = ascii_hash;
-
-    memset(hash, 0, HASH_SIZE);
-
-    if (!_valid_ascii_hash(ascii_hash))
-        return -1;
-
-    for (size_t i = 0; i < HASH_SIZE; i++)
-    {
-        unsigned int byte;
-        sscanf(p, "%02x", &byte);
-        hash[i] = (uint8_t)byte;
-        p += 2;
-    }
-
-    return 0;
 }
 
 static void _compute_signer(

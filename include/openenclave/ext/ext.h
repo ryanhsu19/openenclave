@@ -11,6 +11,8 @@
 
 oe_result_t oe_ext_verify_signature(
     const oe_ext_signature_t* signature,
-    const oe_ext_policy_t* policy);
+    const oe_ext_policy_t* policy,
+    const uint8_t* hash,
+    size_t hash_size);
 
 #endif /* _OE_EXT_EXT_H */

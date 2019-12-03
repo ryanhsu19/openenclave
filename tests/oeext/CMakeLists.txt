@@ -35,4 +35,4 @@ add_test(tests/oeext_sign
     hash=${HASH}
     sigfile=${SIGFILE})
 
-add_enclave_test(tests/oeext oeext_host oeext_enc ${SIGFILE})
+add_enclave_test(tests/oeext oeext_host oeext_enc ${SIGFILE} ${HASH})
