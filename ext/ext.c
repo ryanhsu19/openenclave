@@ -24,6 +24,9 @@ oe_result_t oe_ext_verify_signature(
     if (hash_size != OE_EXT_SIGNATURE_HASH_SIZE)
         OE_RAISE(OE_INVALID_PARAMETER);
 
+    if (memcmp(signature->hash, hash, OE_EXT_SIGNATURE_HASH_SIZE) != 0)
+        OE_RAISE(OE_FAILURE);
+
     /* Check that the signers are the same. */
     if (memcmp(signature->signer, policy->signer, sizeof policy->signer) != 0)
         OE_RAISE(OE_FAILURE);
