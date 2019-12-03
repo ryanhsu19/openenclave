@@ -207,6 +207,7 @@ if (BUILD_ENCLAVES)
   add_subdirectory(libc)
   add_subdirectory(libcxx)
   add_subdirectory(syscall)
+  add_subdirectory(ext)
 endif()
 
 if (OE_SGX)

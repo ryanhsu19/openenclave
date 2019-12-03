@@ -14,9 +14,6 @@
 /* An signature injected by oesignext tool. */
 typedef struct _oe_ext_signature
 {
-    /* Magic number (must be OE_EXT_SIGNATURE_MAGIC) */
-    uint32_t magic;
-
     /* The signer's ID (the SHA-256 of the public signing key). */
     uint8_t signer[OE_EXT_SIGNATURE_HASH_SIZE];
 

@@ -2,8 +2,7 @@
 // Licensed under the MIT License.
 
 #include <openenclave/enclave.h>
-#include <openenclave/ext/policy.h>
-#include <openenclave/ext/signature.h>
+#include <openenclave/ext/ext.h>
 #include <openenclave/internal/rsa.h>
 #include <openenclave/internal/tests.h>
 #include <stdio.h>
@@ -84,35 +83,12 @@ void dump_signature(const oe_ext_signature_t* signature)
 
 void verify_ecall(struct _oe_ext_signature* signature)
 {
-    oe_rsa_public_key_t pubkey;
-
     /* Dump the structure. */
     dump_signature(signature);
 
-    OE_TEST(
-        memcmp(signature->signer, policy.signer, sizeof signature->signer) ==
-        0);
-
-    OE_TEST(
-        oe_rsa_public_key_init_from_binary(
-            &pubkey,
-            policy.modulus,
-            sizeof(policy.modulus),
-            policy.exponent,
-            sizeof(policy.exponent)) == OE_OK);
-
-    OE_TEST(
-        oe_rsa_public_key_verify(
-            &pubkey,
-            OE_HASH_TYPE_SHA256,
-            signature->hash,
-            sizeof(signature->hash),
-            signature->signature,
-            sizeof signature->signature) == OE_OK);
+    OE_TEST(oe_ext_verify_signature(signature, &policy) == OE_OK);
 
     printf("=== VERIFY OKAY\n");
-
-    OE_TEST(oe_rsa_public_key_free(&pubkey) == OE_OK);
 }
 
 OE_SET_ENCLAVE_SGX(

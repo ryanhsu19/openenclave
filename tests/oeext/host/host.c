@@ -51,8 +51,6 @@ int main(int argc, const char* argv[])
     /* Load the signature file. */
     OE_TEST(_load_signature_file(argv[2], &signature) == 0);
 
-    OE_TEST(signature.magic == OE_EXT_SIGNATURE_MAGIC);
-
     result = oe_create_oeext_enclave(argv[1], type, flags, NULL, 0, &enclave);
     OE_TEST(result == OE_OK);
 

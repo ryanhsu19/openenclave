@@ -321,8 +321,6 @@ static void _dump_signature(const oe_ext_signature_t* signature)
     printf("signature =\n");
     printf("{\n");
 
-    printf("    magic=%08x\n", signature->magic);
-
     printf("    signer=");
     _hex_dump(signature->signer, sizeof(signature->signer));
     printf("\n");
@@ -692,9 +690,6 @@ static int _sign_main(int argc, const char* argv[])
 
             memset(&sig, 0, sizeof(sig));
 
-            /* sig.magic */
-            sig.magic = OE_EXT_SIGNATURE_MAGIC;
-
             /* Get the modulus */
             if (_get_modulus(&pubkey, modulus) != 0)
                 _err("failed to get modulus");
@@ -779,10 +774,6 @@ static int _dumpsig_main(int argc, const char* argv[])
     /* Check the size of the file. */
     if (size != sizeof(oe_ext_signature_t))
         _err("file is wrong size: %s", opts.sigfile);
-
-    /* Check the magic number. */
-    if (((oe_ext_signature_t*)data)->magic != OE_EXT_SIGNATURE_MAGIC)
-        _err("magic number is wrong: %s", opts.sigfile);
 
     /* Dump the fields in the file. */
     _dump_signature(((oe_ext_signature_t*)data));
