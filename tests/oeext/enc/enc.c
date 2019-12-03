@@ -17,6 +17,7 @@ void hex_dump(const uint8_t* data, size_t size)
 {
     for (size_t i = 0; i < size; i++)
         printf("%02x", data[i]);
+    printf("\n");
 }
 
 void dump_string(const uint8_t* s, size_t n)
@@ -41,11 +42,13 @@ void dump_policy(oe_ext_policy_t* policy)
     printf("policy =\n");
     printf("{\n");
 
-    printf("    pubkey=");
-    dump_string(policy->pubkey_data, policy->pubkey_size);
+    printf("    modulus=");
+    hex_dump(policy->modulus, sizeof(policy->modulus));
     printf("\n");
 
-    printf("    pubkey_size=%llu\n", policy->pubkey_size);
+    printf("    exponent=");
+    hex_dump(policy->exponent, sizeof(policy->exponent));
+    printf("\n");
 
     printf("    signer=");
     hex_dump(policy->signer, sizeof(policy->signer));
@@ -81,6 +84,8 @@ void dump_signature(const oe_ext_signature_t* signature)
 
 void verify_ecall(struct _oe_ext_signature* signature)
 {
+    oe_rsa_public_key_t pubkey;
+
     /* Dump the structure. */
     dump_signature(signature);
 
@@ -88,11 +93,13 @@ void verify_ecall(struct _oe_ext_signature* signature)
         memcmp(signature->signer, policy.signer, sizeof signature->signer) ==
         0);
 
-    oe_rsa_public_key_t pubkey;
-
     OE_TEST(
-        oe_rsa_public_key_read_pem(
-            &pubkey, policy.pubkey_data, policy.pubkey_size) == OE_OK);
+        oe_rsa_public_key_init_from_binary(
+            &pubkey,
+            policy.modulus,
+            sizeof(policy.modulus),
+            policy.exponent,
+            sizeof(policy.exponent)) == OE_OK);
 
     OE_TEST(
         oe_rsa_public_key_verify(
@@ -102,6 +109,8 @@ void verify_ecall(struct _oe_ext_signature* signature)
             sizeof(signature->hash),
             signature->signature,
             sizeof signature->signature) == OE_OK);
+
+    printf("=== VERIFY OKAY\n");
 
     OE_TEST(oe_rsa_public_key_free(&pubkey) == OE_OK);
 }

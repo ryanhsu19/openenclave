@@ -241,6 +241,13 @@ oe_result_t oe_rsa_public_key_equal(
     const oe_rsa_public_key_t* public_key2,
     bool* equal);
 
+oe_result_t oe_rsa_public_key_init_from_binary(
+    oe_rsa_public_key_t* public_key,
+    const uint8_t* modulus,
+    size_t modulus_size,
+    const uint8_t* exponent,
+    size_t exponent_size);
+
 OE_EXTERNC_END
 
 #endif /* _OE_RSA_H */

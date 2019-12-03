@@ -18,10 +18,6 @@
 #include "../../host/crypto/rsa.h"
 
 #define HASH_SIZE OE_SHA256_SIZE
-#define KEY_SIZE 384
-#define SIGNATURE_SIZE KEY_SIZE
-#define MODULUS_SIZE KEY_SIZE
-#define EXPONENT_SIZE KEY_SIZE
 
 static const char* arg0;
 
@@ -133,18 +129,16 @@ int _ascii_to_hash(const char* ascii_hash, uint8_t hash[HASH_SIZE])
 }
 
 static void _compute_signer(
-    const uint8_t modulus[MODULUS_SIZE],
-    const uint8_t exponent[EXPONENT_SIZE],
-    uint8_t signature[HASH_SIZE])
+    const uint8_t modulus[OE_EXT_POLICY_MODULUS_SIZE],
+    uint8_t signer[HASH_SIZE])
 {
     oe_sha256_context_t context;
     OE_SHA256 sha256;
 
     oe_sha256_init(&context);
-    oe_sha256_update(&context, modulus, MODULUS_SIZE);
-    oe_sha256_update(&context, exponent, EXPONENT_SIZE);
+    oe_sha256_update(&context, modulus, OE_EXT_POLICY_MODULUS_SIZE);
     oe_sha256_final(&context, &sha256);
-    memcpy(signature, sha256.buf, OE_SHA256_SIZE);
+    memcpy(signer, sha256.buf, OE_SHA256_SIZE);
 }
 
 int _write_file(const char* path, const void* data, size_t size)
@@ -244,10 +238,10 @@ static void _mem_reverse(void* dest_, const void* src_, size_t n)
 
 static oe_result_t _get_modulus(
     const oe_rsa_public_key_t* rsa,
-    uint8_t modulus[SIGNATURE_SIZE])
+    uint8_t modulus[OE_EXT_SIGNATURE_SIZE])
 {
     oe_result_t result = OE_UNEXPECTED;
-    uint8_t buf[SIGNATURE_SIZE];
+    uint8_t buf[OE_EXT_SIGNATURE_SIZE];
     size_t bufsize = sizeof(buf);
 
     if (!rsa || !modulus)
@@ -256,7 +250,7 @@ static oe_result_t _get_modulus(
     OE_CHECK(oe_rsa_public_key_get_modulus(rsa, buf, &bufsize));
 
     /* RSA key length is the modulus length, so these have to be equal. */
-    if (bufsize != SIGNATURE_SIZE)
+    if (bufsize != OE_EXT_SIGNATURE_SIZE)
         OE_RAISE(OE_FAILURE);
 
     _mem_reverse(modulus, buf, bufsize);
@@ -269,10 +263,10 @@ done:
 
 static oe_result_t _get_exponent(
     const oe_rsa_public_key_t* rsa,
-    uint8_t exponent[EXPONENT_SIZE])
+    uint8_t exponent[OE_EXT_POLICY_EXPONENT_SIZE])
 {
     oe_result_t result = OE_UNEXPECTED;
-    uint8_t buf[EXPONENT_SIZE];
+    uint8_t buf[OE_EXT_POLICY_EXPONENT_SIZE];
     size_t bufsize = sizeof(buf);
 
     if (!rsa || !exponent)
@@ -284,7 +278,7 @@ static oe_result_t _get_exponent(
     _mem_reverse(exponent, buf, bufsize);
 
     /* We zero out the rest to get the right exponent in little endian. */
-    memset(exponent + bufsize, 0, EXPONENT_SIZE - bufsize);
+    memset(exponent + bufsize, 0, OE_EXT_POLICY_EXPONENT_SIZE - bufsize);
 
     result = OE_OK;
 
@@ -344,33 +338,18 @@ static void _dump_signature(const oe_ext_signature_t* signature)
     printf("}\n");
 }
 
-static void _dump_string(const uint8_t* s, size_t n)
-{
-    printf("\"");
-
-    for (size_t i = 0; i < n; i++)
-    {
-        int c = s[i];
-
-        if (c >= ' ' && c <= '~')
-            printf("%c", s[i]);
-        else
-            printf("\\%03o", s[i]);
-    }
-
-    printf("\"");
-}
-
 static void _dump_policy(oe_ext_policy_t* policy)
 {
     printf("policy =\n");
     printf("{\n");
 
-    printf("    pubkey=");
-    _dump_string(policy->pubkey_data, policy->pubkey_size);
+    printf("    modulus=");
+    _hex_dump(policy->modulus, sizeof(policy->modulus));
     printf("\n");
 
-    printf("    pubkey_size=%lu\n", policy->pubkey_size);
+    printf("    exponent=");
+    _hex_dump(policy->exponent, sizeof(policy->exponent));
+    printf("\n");
 
     printf("    signer=");
     _hex_dump(policy->signer, sizeof(policy->signer));
@@ -471,46 +450,37 @@ static int _extend_main(int argc, const char* argv[])
     if (oe_rsa_public_key_read_pem(&pubkey, pem_data, pem_size) != OE_OK)
         _err("failed to initialize private key");
 
-    /* Update the 'extend' symbol. */
+    /* Update the 'policy' symbol. */
     {
-        oe_ext_policy_t extend;
-        uint8_t modulus[MODULUS_SIZE];
-        uint8_t exponent[EXPONENT_SIZE];
+        oe_ext_policy_t policy;
+        memset(&policy, 0, sizeof(policy));
 
-        memset(&extend, 0, sizeof(extend));
-
-        /* extend.pubkey_data */
-        memcpy(extend.pubkey_data, pem_data, pem_size);
-
-        /* extend.pubkey_size */
-        extend.pubkey_size = (uint64_t)pem_size;
-
-        /* extend.modulus */
-        if (_get_modulus(&pubkey, modulus) != 0)
+        /* policy.modulus */
+        if (_get_modulus(&pubkey, policy.modulus) != 0)
             _err("failed to get modulus");
 
-        /* extend.exponent */
-        if (_get_exponent(&pubkey, exponent) != 0)
+        /* policy.exponent */
+        if (_get_exponent(&pubkey, policy.exponent) != 0)
             _err("failed to get exponent");
 
         /* Expecting an exponent of 03000000 */
         {
-            uint8_t buf[EXPONENT_SIZE] = {
+            uint8_t buf[OE_EXT_POLICY_EXPONENT_SIZE] = {
                 0x03,
                 0x00,
                 0x00,
                 0x00,
             };
 
-            if (memcmp(exponent, buf, sizeof(buf)) != 0)
+            if (memcmp(policy.exponent, buf, sizeof(buf)) != 0)
                 _err("bad value for pubkey exponent (must be 3)");
         }
 
         /* Compute the hash of the public key. */
-        _compute_signer(modulus, exponent, extend.signer);
+        _compute_signer(policy.modulus, policy.signer);
 
         /* Update the extend structure in the ELF file. */
-        memcpy(symbol_address, &extend, sizeof(extend));
+        memcpy(symbol_address, &policy, sizeof(policy));
     }
 
     /* Rewrite the file. */
@@ -645,7 +615,7 @@ static int _sign_main(int argc, const char* argv[])
     bool rsa_private_initialized = false;
     oe_rsa_public_key_t pubkey;
     bool pubkey_initialized = false;
-    oe_ext_signature_t sign;
+    oe_ext_signature_t sig;
 
     int ret = 1;
 
@@ -694,11 +664,11 @@ static int _sign_main(int argc, const char* argv[])
 
     /* Perform the signing operation. */
     {
-        uint8_t signature[SIGNATURE_SIZE];
+        uint8_t signature[OE_EXT_SIGNATURE_SIZE];
 
         /* Create the signature from the hash. */
         {
-            size_t signature_size = SIGNATURE_SIZE;
+            size_t signature_size = OE_EXT_SIGNATURE_SIZE;
 
             if (oe_rsa_private_key_sign(
                     &rsa_private,
@@ -711,42 +681,43 @@ static int _sign_main(int argc, const char* argv[])
                 _err("signing operation failed");
             }
 
-            if (signature_size != SIGNATURE_SIZE)
+            if (signature_size != OE_EXT_SIGNATURE_SIZE)
                 _err("bad resulting signature size");
         }
 
-        /* Initialize the sign structure. */
+        /* Initialize the sig structure. */
         {
-            uint8_t modulus[MODULUS_SIZE];
-            uint8_t exponent[EXPONENT_SIZE];
+            uint8_t modulus[OE_EXT_POLICY_MODULUS_SIZE];
+            uint8_t exponent[OE_EXT_POLICY_EXPONENT_SIZE];
 
-            memset(&sign, 0, sizeof(sign));
+            memset(&sig, 0, sizeof(sig));
 
-            /* sign.magic */
-            sign.magic = OE_EXT_SIGNATURE_MAGIC;
+            /* sig.magic */
+            sig.magic = OE_EXT_SIGNATURE_MAGIC;
 
-            /* sign.modulus */
+            /* Get the modulus */
             if (_get_modulus(&pubkey, modulus) != 0)
                 _err("failed to get modulus");
 
-            /* sign.exponent */
+            /* Get the exponent */
             if (_get_exponent(&pubkey, exponent) != 0)
                 _err("failed to get exponent");
 
             /* sign.signer */
-            _compute_signer(modulus, exponent, sign.signer);
+            _compute_signer(modulus, sig.signer);
 
             /* sign.hash */
-            assert(sizeof sign.hash == sizeof opts.hash);
-            memcpy(sign.hash, opts.hash, sizeof sign.hash);
+            assert(sizeof sig.hash == sizeof opts.hash);
+            memcpy(sig.hash, opts.hash, sizeof sig.hash);
 
-            assert(sizeof sign.signature == sizeof signature);
-            memcpy(sign.signature, signature, sizeof sign.signature);
+            /* sign.signature */
+            assert(sizeof sig.signature == sizeof signature);
+            memcpy(sig.signature, signature, sizeof sig.signature);
         }
     }
 
     /* Write the signature file. */
-    if (_write_file(opts.sigfile, &sign, sizeof sign) != 0)
+    if (_write_file(opts.sigfile, &sig, sizeof sig) != 0)
     {
         _err("failed to write: %s", opts.sigfile);
         goto done;

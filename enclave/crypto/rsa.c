@@ -3,6 +3,8 @@
 
 #include "rsa.h"
 #include <openenclave/bits/safecrt.h>
+#include <openenclave/corelibc/stdio.h>
+#include <openenclave/corelibc/string.h>
 #include <openenclave/internal/raise.h>
 #include <openenclave/internal/utils.h>
 #include "key.h"
@@ -313,4 +315,161 @@ oe_result_t oe_rsa_public_key_equal(
 {
     return oe_public_key_equal(
         (oe_public_key_t*)public_key1, (oe_public_key_t*)public_key2, equal);
+}
+
+#define SIGNING_KEY_MODULUS_SIZE 384
+#define SIGNING_KEY_EXPONENT_SIZE 4
+
+static oe_result_t _public_key_init_from_binary(
+    mbedtls_pk_context* dest,
+    const uint8_t* modulus,
+    size_t modulus_size,
+    const uint8_t* exponent,
+    size_t exponent_size)
+{
+    oe_result_t result = OE_UNEXPECTED;
+    const mbedtls_pk_info_t* info = NULL;
+    mbedtls_rsa_context* rsa = NULL;
+    int rc = 0;
+    mbedtls_mpi N;
+    mbedtls_mpi E;
+
+    mbedtls_mpi_init(&N);
+    mbedtls_mpi_init(&E);
+
+    if (dest)
+        mbedtls_pk_init(dest);
+
+    if (!modulus || modulus_size != SIGNING_KEY_MODULUS_SIZE)
+        OE_RAISE(OE_INVALID_PARAMETER);
+
+    if (!exponent || exponent_size != SIGNING_KEY_EXPONENT_SIZE)
+        OE_RAISE(OE_INVALID_PARAMETER);
+
+    /* Check for invalid parameters */
+    if (!dest)
+        OE_RAISE(OE_INVALID_PARAMETER);
+
+    /* Lookup the RSA info */
+    if (!(info = mbedtls_pk_info_from_type(MBEDTLS_PK_RSA)))
+        OE_RAISE(OE_PUBLIC_KEY_NOT_FOUND);
+
+    /* Setup the context for this key type */
+    if ((rc = mbedtls_pk_setup(dest, info)) != 0)
+        OE_RAISE_MSG(OE_CRYPTO_ERROR, "rc = 0x%x\n", rc);
+
+    /* Get the context from the key. */
+    if (!(rsa = dest->pk_ctx))
+        OE_RAISE(OE_FAILURE);
+
+    mbedtls_rsa_init(rsa, MBEDTLS_RSA_PKCS_V15, 0);
+
+    /* Set the modulus. */
+    {
+        if (mbedtls_mpi_read_binary(&N, modulus, modulus_size) != 0)
+            OE_RAISE(OE_FAILURE);
+
+        if (mbedtls_rsa_import(rsa, &N, NULL, NULL, NULL, NULL))
+            OE_RAISE(OE_FAILURE);
+
+        rsa->len = mbedtls_mpi_size(&rsa->N);
+    }
+
+    /* Set the exponent. */
+    {
+        if (mbedtls_mpi_read_binary(&E, exponent, exponent_size) != 0)
+            OE_RAISE(OE_FAILURE);
+
+        if (mbedtls_rsa_import(rsa, NULL, NULL, NULL, NULL, &E))
+            OE_RAISE(OE_FAILURE);
+    }
+
+    if (mbedtls_rsa_complete(rsa) != 0)
+        OE_RAISE(OE_FAILURE);
+
+    if (mbedtls_rsa_check_pubkey(rsa) != 0)
+        OE_RAISE(OE_FAILURE);
+
+#if 0
+    oe_printf("*****************************\n");
+    oe_printf("ver=%d\n", rsa->ver);
+    oe_printf("len=%zu\n", rsa->len);
+    oe_printf("padding=%d\n", rsa->padding);
+    oe_printf("hash_id=%d\n", rsa->hash_id);
+#endif
+
+    result = OE_OK;
+
+done:
+
+    if (result != OE_OK)
+        mbedtls_pk_free(dest);
+
+    mbedtls_mpi_free(&N);
+    mbedtls_mpi_free(&E);
+
+    return result;
+}
+
+static void _mem_reverse(void* dest_, const void* src_, size_t n)
+{
+    unsigned char* dest = (unsigned char*)dest_;
+    const unsigned char* src = (const unsigned char*)src_;
+    const unsigned char* end = src + n;
+
+    while (n--)
+        *dest++ = *--end;
+}
+
+oe_result_t oe_rsa_public_key_init_from_binary(
+    oe_rsa_public_key_t* public_key,
+    const uint8_t* modulus,
+    size_t modulus_size,
+    const uint8_t* exponent,
+    size_t exponent_size)
+{
+    oe_result_t result = OE_UNEXPECTED;
+    oe_public_key_t* impl = (oe_public_key_t*)public_key;
+    uint8_t* modulus_reverse = NULL;
+    uint8_t* exponent_reverse = NULL;
+
+    if (impl)
+        memset(impl, 0, sizeof(*impl));
+
+    if (!impl || !modulus || !modulus_size || !exponent || !exponent_size)
+        OE_RAISE(OE_INVALID_PARAMETER);
+
+    /* Reverse the modulus and exponent (mbedtls expects little endian). */
+    {
+        if (!(modulus_reverse = malloc(modulus_size)))
+            OE_RAISE(OE_OUT_OF_MEMORY);
+
+        _mem_reverse(modulus_reverse, modulus, modulus_size);
+
+        if (!(exponent_reverse = malloc(exponent_size)))
+            OE_RAISE(OE_OUT_OF_MEMORY);
+
+        _mem_reverse(exponent_reverse, exponent, exponent_size);
+    }
+
+    OE_CHECK(_public_key_init_from_binary(
+        &impl->pk,
+        modulus_reverse,
+        modulus_size,
+        exponent_reverse,
+        exponent_size));
+
+    impl->magic = _PUBLIC_KEY_MAGIC;
+
+    result = OE_OK;
+
+done:
+
+    if (modulus_reverse)
+        free(modulus_reverse);
+
+    if (exponent_reverse)
+        free(exponent_reverse);
+
+    return result;
 }
