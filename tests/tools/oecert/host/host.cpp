@@ -111,10 +111,10 @@ static oe_result_t _gen_cert(
         FILE* file = NULL;
 
         printf("Creating certificate file: %s\n", out_filename);
-#ifdef _WIN64
+#ifdef _WIN32
         fopen_s(&file, out_filename, "wb");
 #else
-	    file = fopen(out_filename, "wb");
+        file = fopen(out_filename, "wb");
 #endif
         if (file == NULL)
         {
@@ -166,10 +166,10 @@ static oe_result_t _gen_report(
         // Write report to file
         {
             FILE* output = NULL;
-#ifdef _WIN64
+#ifdef _WIN32
             fopen_s(&output, report_filename, "wb");
 #else
-	        output = fopen(report_filename, "wb");
+            output = fopen(report_filename, "wb");
 #endif
             if (!output)
             {
@@ -208,7 +208,7 @@ static oe_result_t _gen_report(
             uint8_t* collaterals = NULL;
             size_t collaterals_size = 0;
             oe_report_header_t* header = (oe_report_header_t*)remote_report;
-#ifdef _WIN64
+#ifdef _WIN32
             sprintf_s(collateral_filename, sizeof(collateral_filename), "%s.col", report_filename);
 #else
             sprintf(collateral_filename, "%s.col", report_filename);
@@ -228,7 +228,7 @@ static oe_result_t _gen_report(
             }
 
             FILE* col_fp = NULL;
-#ifdef _WIN64
+#ifdef _WIN32
             fopen_s(&col_fp, collateral_filename, "wb");
 #else
 			col_fp = fopen(collateral_filename, "wb");
@@ -298,7 +298,7 @@ static int _parse_args(int argc, const char* argv[])
 
     // Verify enclave file is valid
 	FILE* fp = NULL;
-#ifdef _WIN64
+#ifdef _WIN32
     fopen_s(&fp, _params.enclave_filename, "rb");
 #else
     fp = fopen(_params.enclave_filename, "rb");
@@ -373,11 +373,7 @@ static int _parse_args(int argc, const char* argv[])
 
     if (_params.gen_cert && _params.gen_report)
     {
-#ifdef _WIN64
-        printf_s("Please specify to generate a certificate or a report.\n");
-#else
-        printf("Please specify to generate a certificate or a report.\n");
-#endif
+		printf("Please specify to generate a certificate or a report.\n");
         return 1;
     }
 
@@ -387,7 +383,7 @@ static int _parse_args(int argc, const char* argv[])
 static oe_result_t _read_key(const char* filename, uint8_t** data, size_t* size)
 {
     FILE* fp = NULL;
-#ifdef _WIN64
+#ifdef _WIN32
     fopen_s(&fp, filename, "rb");
 #else
     fp = fopen(filename, "rb");

@@ -1490,23 +1490,13 @@ int oe_syscall_uname_ocall(struct oe_utsname* buf)
     // OE SDK is supported only on WindowsServer and Win10
     if (IsWindowsServer())
     {
-		size_t ret_size;
-		
-		ret_size = sizeof("WindowsServer");
-        sprintf_s(buf->sysname, ret_size, "WindowsServer");
-		
-		ret_size = sizeof("2016OrAbove");
-        sprintf_s(buf->version, ret_size, "2016OrAbove");
+        sprintf_s(buf->sysname, sizeof(buf->sysname), "WindowsServer");
+        sprintf_s(buf->version, sizeof(buf->version), "2016OrAbove");
     }
     else if (IsWindows10OrGreater())
     {
-		size_t ret_size;
-		
-		ret_size = sizeof("Windows10OrGreater");
-        sprintf_s(buf->sysname, ret_size, "Windows10OrGreater");
-		
-		ret_size = sizeof("10OrAbove");
-        sprintf_s(buf->version, ret_size, "10OrAbove");
+        sprintf_s(buf->sysname, sizeof(buf->sysname), "Windows10OrGreater");
+        sprintf_s(buf->version, sizeof(buf->version), "10OrAbove");
     }
 
     ret = 0;

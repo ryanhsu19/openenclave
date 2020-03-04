@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 #include <openenclave/bits/defs.h>
-#include <openenclave/corelibc/time.h>
 #include <openenclave/internal/datetime.h>
 #include <openenclave/internal/raise.h>
 #include <time.h>
@@ -237,10 +236,10 @@ oe_result_t oe_datetime_now(oe_datetime_t* value)
 
     time(&now);
 
-#ifdef _WIN64
+#ifdef _WIN32
     if (gmtime_s(timeinfo, &now) == 0)
 #else
-    if ((timeinfo = gmtime(&now)) != NULL)
+    if ((timeinfo = gmtime_r(&now, timeinfo)) != NULL)
 #endif
     {
 		value->year = (uint32_t)timeinfo->tm_year + 1900;

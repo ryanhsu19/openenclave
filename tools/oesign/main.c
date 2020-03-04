@@ -90,7 +90,7 @@ static oe_result_t _update_and_write_signed_exe(
         }
 
 #ifdef _WIN32
-        if (fopen_s(&os, p, "wb") != OE_OK)
+        if (fopen_s(&os, p, "wb") != 0)
 #else
 	    if ((os = fopen(p, "wb")) == NULL)
 #endif
@@ -194,7 +194,7 @@ static int _load_config_file(const char* path, ConfigFileOptions* options)
     size_t line = 1;
 
 #ifdef _WIN32
-    if (fopen_s(&is, path, "rb") != OE_OK)
+    if (fopen_s(&is, path, "rb") != 0)
 #else
 	if ((is = fopen(path, "rb")) == NULL)
 #endif
@@ -357,7 +357,7 @@ static int _load_pem_file(const char* path, void** data, size_t* size)
 
     /* Open the file */
 #ifdef _WIN32
-    if (fopen_s(&is, path, "rb") != OE_OK)
+    if (fopen_s(&is, path, "rb") != 0)
 #else
 	if ((is = fopen(path, "rb")) == NULL)
 #endif

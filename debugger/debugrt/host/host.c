@@ -52,8 +52,9 @@ static bool raise_debugger_events()
 			char* version;
 			
 			ret_size = sizeof("OE_DEBUGGER_CONTRACT_VERSION");
-            ret = _dupenv_s(&version, &ret_size, "OE_DEBUGGER_CONTRACT_VERSION");
 			
+#ifdef _WIN32
+            ret = _dupenv_s(&version, &ret_size, "OE_DEBUGGER_CONTRACT_VERSION");			
 			if (ret == OE_OK)
             {
                 int v = 0;
@@ -62,6 +63,17 @@ static bool raise_debugger_events()
                     oe_debugger_contract_version = (uint32_t)v;
                 }
             }
+#else
+            version = getenv("OE_DEBUGGER_CONTRACT_VERSION");
+            if (version != NULL)
+			{
+				int v = 0;
+                if (sscanf(version, "%d", &v) == 1)
+                {
+                    oe_debugger_contract_version = (uint32_t)v;
+                }
+			}
+#endif
 
             initialized = true;
         }

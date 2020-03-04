@@ -1,5 +1,5 @@
 // Copyright (c) Open Enclave SDK contributors.
-// Licensed under the MIT License. 
+// Licensed under the MIT License.
 
 #include "../common/tests.h"
 #include <openenclave/internal/crypto/cmac.h>
@@ -1299,7 +1299,7 @@ void test_verify_report_with_collaterals()
 #ifdef _WIN32
         gmtime_s(timeinfo, &t);
 #else
-        timeinfo = gmtime_r(&t, timeinfo);
+        timeinfo = gmtime(&t);
 #endif
 
         // convert tm to oe_datetime_t

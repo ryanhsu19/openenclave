@@ -208,7 +208,7 @@ int main(int argc, const char* argv[])
 #ifdef _WIN32
     gmtime_s(tm, &t);
 #else
-    timeinfo = gmtime_r(&t, tm);
+    tm = gmtime(&t);
 #endif
 
     // convert std::tm to oe_datetime_t

@@ -31,7 +31,7 @@ char* find_data_file(char* str, size_t size)
         return token;
     }
 
-#ifdef _WIN64
+#ifdef _WIN32
     strncat_s(str, sizeof(str), tail, strlen(tail));
 #else
 	strncat(str, tail, strlen(tail));
@@ -44,7 +44,7 @@ void datafileloc(char* data_file_name, char* path)
 {
     char* tail = "../enc/";
 #ifdef PROJECT_DIR
-#if defined(_WIN32)
+#ifdef _WIN32
     strcpy_s(path, sizeof(path), PROJECT_DIR);
 #else
     strcpy(path, PROJECT_DIR);
@@ -65,12 +65,12 @@ void datafileloc(char* data_file_name, char* path)
 
     *separator = '\0'; /* separating string */
 #endif
-#if defined(_WIN32)
+#ifdef _WIN32
     strcat_s(path, sizeof(path), tail);
 #else
     strcat(path, tail);
 #endif
-#if defined(_WIN32)
+#ifdef _WIN32
     strcat_s(path, sizeof(path), data_file_name);
 #else
     strcat(path, data_file_name);

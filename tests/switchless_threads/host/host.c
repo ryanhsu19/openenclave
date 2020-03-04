@@ -30,7 +30,7 @@ int host_echo_switchless(char* in, char* out, char* str1, char str2[STRING_LEN])
     OE_TEST(strcmp(str2, HOST_STACK_STRING) == 0);
 
 #ifdef _WIN32
-    strcpy_s(out, STRING_LEN, in);
+    strcpy_s(out, sizeof(out), in);
 #else
     strcpy(out, in);
 #endif
@@ -44,7 +44,7 @@ int host_echo_regular(char* in, char* out, char* str1, char str2[STRING_LEN])
     OE_TEST(strcmp(str2, HOST_STACK_STRING) == 0);
 
 #ifdef _WIN32
-    strcpy_s(out, STRING_LEN, in);
+    strcpy_s(out, sizeof(out), in);
 #else
     strcpy(out, in);
 #endif

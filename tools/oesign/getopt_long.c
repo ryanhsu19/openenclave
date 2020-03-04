@@ -51,7 +51,11 @@ size_t length;    /* length for _dupenv_s */
 #define IGNORE_FIRST (*options == '-' || *options == '+')
 #define PRINT_ERROR \
     ((opterr) && ((*options != ':') || (IGNORE_FIRST && options[1] != ':')))
-#define IS_POSIXLY_CORRECT (_dupenv_s(&buffer, &length, "POSIXLY_CORRECT") == OE_OK)
+#ifdef _WIN32
+#define IS_POSIXLY_CORRECT (_dupenv_s(&buffer, &length, "POSIXLY_CORRECT") == 0)
+#else
+#define IS_POSIXLY_CORRECT (getenv("POSIXLY_CORRECT") != NULL)
+#endif
 #define PERMUTE (!IS_POSIXLY_CORRECT && !IGNORE_FIRST)
 
 #define IN_ORDER (!IS_POSIXLY_CORRECT && *options == '-')

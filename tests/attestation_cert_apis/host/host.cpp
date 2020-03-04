@@ -95,7 +95,11 @@ void run_test(oe_enclave_t* enclave, int test_type)
         char filename[80];
         FILE* file = NULL;
 
+#ifdef _WIN32
         sprintf_s(
+#else
+	    sprintf(
+#endif
             filename,
             "./cert_%s.der",
             test_type == TEST_RSA_KEY ? "rsa" : "ec");
