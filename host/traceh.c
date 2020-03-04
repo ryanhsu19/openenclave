@@ -201,8 +201,8 @@ static bool _escape_characters(
                         log_msg_escaped[idx] = '\0';
                         return false;
                     }
-                    sprintf(
-                        (char*)&log_msg_escaped[idx], "u%04hhx", log_msg[i]);
+                    sprintf_s(
+                        (char*)&log_msg_escaped[idx], sizeof(log_msg[i]), "u%04hhx", log_msg[i]);
                     // idx is also incremented after switch case
                     idx += MAX_ESCAPED_CHAR_LEN - 1;
                     break;
@@ -316,7 +316,8 @@ void oe_log_message(bool is_enclave, oe_log_level_t level, const char* message)
     struct tm* t = gmtime(&time_now.tv_sec);
 #else
     time_t lt = time(NULL);
-    struct tm* t = gmtime(&lt);
+    struct tm* t = NULL;
+	gmtime_s(t, &lt);
 #endif
 
     char time[20];

@@ -24,7 +24,11 @@ void Pong(const char* in, char* out)
         {
             got_pong = true;
         }
+#ifdef _WIN32
+        strcpy_s(out, sizeof(out), in);
+#else
         strcpy(out, in);
+#endif
     }
 }
 
@@ -47,11 +51,19 @@ OE_EXPORT int main_shared(int argc, const char* argv[])
         argv[1], OE_ENCLAVE_TYPE_AUTO, flags, NULL, 0, &enclave);
     if (result != OE_OK)
     {
+#ifdef _WIN32
+        fprintf_s(stderr, "%s: cannot create enclave: %s\n", argv[0], argv[1]);
+#else
         fprintf(stderr, "%s: cannot create enclave: %s\n", argv[0], argv[1]);
+#endif
         return 1;
     }
 
+#ifdef _WIN32
+    strcpy_s(buf, sizeof(buf), "String2");
+#else
     strcpy(buf, "String2");
+#endif
     result = Ping(enclave, "String1", buf);
     if (result != OE_OK)
     {

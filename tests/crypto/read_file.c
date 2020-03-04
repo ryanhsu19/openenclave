@@ -8,8 +8,13 @@
 oe_result_t read_cert(char* filename, char* cert)
 {
     size_t len_cert;
-    FILE* cfp = fopen(filename, "rb");
-    if (cfp != NULL)
+    FILE* cfp;
+
+#ifdef _WIN64
+    if (fopen_s(&cfp, filename, "rb") == 0)
+#else
+	if ((cfp = fopen(filename, "rb")) != NULL)
+#endif
     {
         len_cert = fread(cert, sizeof(char), max_cert_size, cfp);
     }
@@ -30,10 +35,23 @@ oe_result_t read_chain(
 {
     size_t len_cert1 = 0, len_cert2 = 0;
     char chain_temp[max_cert_size];
-    FILE* cfp1 = fopen(filename1, "rb");
-    FILE* cfp2 = fopen(filename2, "rb");
+	FILE* cfp1;
+	FILE* cfp2;
+	
+#ifdef _WIN64
+    if (fopen_s(&cfp1, filename1, "rb") != 0)
+#else
+	if ((cfp1 = fopen(filename1, "rb")) == NULL)
+#endif
+	{
+		return OE_FAILURE;
+	}
 
-    if (cfp1 != NULL && cfp2 != NULL)
+#ifdef _WIN64
+    if (fopen_s(&cfp2, filename2, "rb") == 0)
+#else
+	if ((cfp2 = fopen(filename2, "rb")) != NULL)
+#endif
     {
         len_cert1 = fread(chain, sizeof(char), max_cert_size, cfp1);
         chain[len_cert1] = '\0';
@@ -61,11 +79,33 @@ oe_result_t read_chains(
     size_t len_cert1 = 0, len_cert2 = 0, len_cert3 = 0;
     char chain_temp1[max_cert_size];
     char chain_temp2[max_cert_size];
-    FILE* cfp1 = fopen(filename1, "rb");
-    FILE* cfp2 = fopen(filename2, "rb");
-    FILE* cfp3 = fopen(filename3, "rb");
+    FILE* cfp1;
+    FILE* cfp2;
+    FILE* cfp3;
 
-    if (cfp1 != NULL && cfp2 != NULL && cfp3 != NULL)
+#ifdef _WIN64
+    if (fopen_s(&cfp1, filename1, "rb") != 0)
+#else
+	if ((cfp1 = fopen(filename1, "rb")) == NULL)
+#endif
+	{
+		return OE_FAILURE;
+	}
+	
+#ifdef _WIN64
+    if (fopen_s(&cfp2, filename2, "rb") != 0)
+#else
+	if ((cfp2 = fopen(filename2, "rb")) == NULL)
+#endif
+	{
+		return OE_FAILURE;
+	}
+	
+#ifdef _WIN64
+    if (fopen_s(&cfp3, filename3, "rb") == 0)
+#else
+	if ((cfp3 = fopen(filename3, "rb")) != NULL)
+#endif
     {
         len_cert1 = fread(chain, sizeof(char), max_cert_size, cfp1);
         chain[len_cert1] = '\0';
@@ -89,9 +129,13 @@ oe_result_t read_chains(
 oe_result_t read_crl(char* filename, uint8_t* crl, size_t* crl_size)
 {
     size_t len_crl = 0;
-    FILE* cfp = fopen(filename, "rb");
+    FILE* cfp;
 
-    if (cfp != NULL)
+#ifdef _WIN64
+    if (fopen_s(&cfp, filename, "rb") == 0)
+#else
+	if ((cfp = fopen(filename, "rb")) != NULL)
+#endif
     {
         len_crl = fread(crl, sizeof(char), max_cert_size, cfp);
     }
@@ -109,9 +153,13 @@ oe_result_t read_dates(char* filename, oe_datetime_t* time)
 {
     size_t len_date = 0;
     char buffer[max_date_size];
-    FILE* dfp = fopen(filename, "rb");
+    FILE* dfp;
 
-    if (dfp != NULL)
+#ifdef _WIN64
+    if (fopen_s(&dfp, filename, "rb") == 0)
+#else
+	if ((dfp = fopen(filename, "rb")) != NULL)
+#endif
     {
         len_date = fread(buffer, sizeof(char), max_date_size, dfp);
     }
@@ -121,7 +169,8 @@ oe_result_t read_dates(char* filename, oe_datetime_t* time)
     }
     buffer[len_date] = '\0';
 
-    sscanf(
+#ifdef _WIN64
+    sscanf_s(
         buffer,
         "%u :%u :%u :%u :%u :%u",
         &(time->year),
@@ -130,6 +179,17 @@ oe_result_t read_dates(char* filename, oe_datetime_t* time)
         &(time->hours),
         &(time->minutes),
         &(time->seconds));
+#else
+	sscanf(
+        buffer,
+        "%u :%u :%u :%u :%u :%u",
+        &(time->year),
+        &(time->month),
+        &(time->day),
+        &(time->hours),
+        &(time->minutes),
+        &(time->seconds));
+#endif
 
     fclose(dfp);
     return OE_OK;
@@ -199,8 +259,12 @@ oe_result_t read_mod(char* filename, uint8_t* mod, size_t* mod_size)
     char buffer[(max_mod_size * 2) + 1];
     char* bufp = buffer;
 
-    FILE* mfp = fopen(filename, "rb");
-    if (mfp != NULL)
+    FILE* mfp;
+#ifdef _WIN64
+    if (fopen_s(&mfp, filename, "rb") == 0)
+#else
+	if ((mfp = fopen(filename, "rb")) != NULL)
+#endif
     {
         numchars = fread(buffer, sizeof(char), max_mod_size * 2, mfp);
         // Skip leading non-digits ("Modulus=" for example).
@@ -246,8 +310,12 @@ oe_result_t read_mixed_chain(
 oe_result_t read_sign(char* filename, uint8_t* sign, size_t* sign_size)
 {
     size_t len_sign;
-    FILE* sfp = fopen(filename, "rb");
-    if (sfp != NULL)
+    FILE* sfp;
+#ifdef _WIN64
+    if (fopen_s(&sfp, filename, "rb") == 0)
+#else
+	if ((sfp = fopen(filename, "rb")) != NULL)
+#endif
     {
         len_sign = fread(sign, sizeof(char), max_sign_size, sfp);
     }
@@ -280,7 +348,11 @@ oe_result_t read_pem_key(
     }
 
     /* Open file in binary mode. */
-    if (!(stream = fopen(filename, "rb")))
+#ifdef _WIN64
+    if (fopen_s(&stream, filename, "rb") != 0)
+#else
+	if ((stream = fopen(filename, "rb")) == NULL)
+#endif
     {
         result = OE_FAILURE;
         goto done;
@@ -322,8 +394,12 @@ oe_result_t read_coordinates(
     size_t* y_size)
 {
     size_t len_x, len_y;
-    FILE* cfp = fopen(filename, "rb");
-    if (cfp != NULL)
+    FILE* cfp;
+#ifdef _WIN64
+    if (fopen_s(&cfp, filename, "rb") == 0)
+#else
+	if ((cfp = fopen(filename, "rb")) != NULL)
+#endif
     {
         len_x = fread(x, sizeof(char), max_coordinates_size, cfp);
         len_y = fread(y, sizeof(char), max_coordinates_size, cfp);

@@ -34,12 +34,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include "getopt.h"
+#include <openenclave/bits/result.h>
 
 int opterr = 1;   /* if error message should be printed */
 int optind = 1;   /* index into parent argv vector */
 int optopt = '?'; /* character checked for validity */
 int optreset;     /* reset getopt */
 char* optarg;     /* argument associated with option */
+char* buffer;     /* buffer for _dupenv_s */
+size_t length;    /* length for _dupenv_s */
 
 #define BUILD_ASSERT_TYPE(POINTER, TYPE) \
     ((void)sizeof((int)((POINTER) == (TYPE)(POINTER))))
@@ -48,7 +51,7 @@ char* optarg;     /* argument associated with option */
 #define IGNORE_FIRST (*options == '-' || *options == '+')
 #define PRINT_ERROR \
     ((opterr) && ((*options != ':') || (IGNORE_FIRST && options[1] != ':')))
-#define IS_POSIXLY_CORRECT (getenv("POSIXLY_CORRECT") != NULL)
+#define IS_POSIXLY_CORRECT (_dupenv_s(&buffer, &length, "POSIXLY_CORRECT") == OE_OK)
 #define PERMUTE (!IS_POSIXLY_CORRECT && !IGNORE_FIRST)
 
 #define IN_ORDER (!IS_POSIXLY_CORRECT && *options == '-')

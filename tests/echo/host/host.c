@@ -16,9 +16,11 @@ int host_echo(char* in, char* out, char* str1, char* str2, char str3[100])
     OE_TEST(strcmp(str1, "oe_host_strdup1") == 0);
     OE_TEST(strcmp(str2, "oe_host_strdup2") == 0);
     OE_TEST(strcmp(str3, "oe_host_strdup3") == 0);
-
+#ifdef _WIN32
+    strcpy_s(out, sizeof(out), in);
+#else
     strcpy(out, in);
-
+#endif
     return 0;
 }
 

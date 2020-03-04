@@ -1,6 +1,8 @@
 // Copyright (c) Open Enclave SDK contributors.
 // Licensed under the MIT License.
 
+#pragma warning(disable: 4996)
+
 #include <inttypes.h>
 #include <openenclave/host.h>
 #include <openenclave/internal/calls.h>

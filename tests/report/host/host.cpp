@@ -18,6 +18,8 @@
 #include <Windows.h>
 #endif
 
+#include <time.h>
+
 #define SKIP_RETURN_CODE 2
 
 extern void TestVerifyTCBInfo(
@@ -45,7 +47,12 @@ void generate_and_save_report(oe_enclave_t* enclave)
             &report,
             &report_size) == OE_OK);
 
-    FILE* file = fopen("./data/generated_report.bytes", "wb");
+    FILE* file = NULL;
+#ifdef _WIN32
+    fopen_s(&file, "./data/generated_report.bytes", "wb");
+#else
+    file = fopen("./data/generated_report.bytes", "wb");
+#endif
     fwrite(report, 1, report_size, file);
     fclose(file);
     oe_free_report(report);
@@ -197,7 +204,12 @@ int main(int argc, const char* argv[])
 
     // Get current time and pass it to enclave.
     std::time_t t = std::time(0);
-    std::tm* tm = std::gmtime(&t);
+    std::tm* tm = NULL;
+#ifdef _WIN32
+    gmtime_s(tm, &t);
+#else
+    timeinfo = gmtime_r(&t, tm);
+#endif
 
     // convert std::tm to oe_datetime_t
     oe_datetime_t now = {(uint32_t)tm->tm_year + 1900,

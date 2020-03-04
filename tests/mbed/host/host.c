@@ -31,7 +31,11 @@ char* find_data_file(char* str, size_t size)
         return token;
     }
 
-    strncat(str, tail, strlen(tail));
+#ifdef _WIN64
+    strncat_s(str, sizeof(str), tail, strlen(tail));
+#else
+	strncat(str, tail, strlen(tail));
+#endif
     printf("######## data_file: %s ###### \n", token);
     return token;
 }
@@ -40,7 +44,11 @@ void datafileloc(char* data_file_name, char* path)
 {
     char* tail = "../enc/";
 #ifdef PROJECT_DIR
+#if defined(_WIN32)
+    strcpy_s(path, sizeof(path), PROJECT_DIR);
+#else
     strcpy(path, PROJECT_DIR);
+#endif
 #else
     char* separator;
 
@@ -57,8 +65,16 @@ void datafileloc(char* data_file_name, char* path)
 
     *separator = '\0'; /* separating string */
 #endif
+#if defined(_WIN32)
+    strcat_s(path, sizeof(path), tail);
+#else
     strcat(path, tail);
+#endif
+#if defined(_WIN32)
+    strcat_s(path, sizeof(path), data_file_name);
+#else
     strcat(path, data_file_name);
+#endif
 
 #if defined(_WIN32)
     /* On Windows, replace forward slashes with backslashes in the path */
@@ -123,13 +139,21 @@ int main(int argc, const char* argv[])
     // Check argument count:
     if (argc != 2)
     {
+#ifdef _WIN32
+        fprintf_s(stderr, "Usage: %s ENCLAVE\n", argv[0]);
+#else
         fprintf(stderr, "Usage: %s ENCLAVE\n", argv[0]);
+#endif
         exit(1);
     }
 
     printf("=== %s: %s\n", argv[0], argv[1]);
 
+#ifdef _WIN32
+    strcpy_s(temp, sizeof(temp), argv[1]);
+#else
     strcpy(temp, argv[1]);
+#endif
 
     if (strstr(argv[1], "selftest"))
     {

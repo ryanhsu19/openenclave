@@ -1,5 +1,5 @@
 // Copyright (c) Open Enclave SDK contributors.
-// Licensed under the MIT License.
+// Licensed under the MIT License. 
 
 #include "../common/tests.h"
 #include <openenclave/internal/crypto/cmac.h>
@@ -1294,9 +1294,13 @@ void test_verify_report_with_collaterals()
 
         /* Test with time in the past */
         time_t t;
-        struct tm* timeinfo;
+        struct tm* timeinfo = NULL;
         time(&t);
-        timeinfo = gmtime(&t);
+#ifdef _WIN32
+        gmtime_s(timeinfo, &t);
+#else
+        timeinfo = gmtime_r(&t, timeinfo);
+#endif
 
         // convert tm to oe_datetime_t
         oe_datetime_t past = {(uint32_t)timeinfo->tm_year + 1890,

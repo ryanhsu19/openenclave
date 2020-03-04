@@ -1,6 +1,8 @@
 // Copyright (c) Open Enclave SDK contributors.
 // Licensed under the MIT License.
 
+#pragma warning(disable: 4996)
+
 #include <assert.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -56,9 +58,9 @@ int f_openat(int dirfd, char* path, int flags, int mode)
 int f_read(int fd, char* ptr, size_t len)
 {
 #if defined(_WIN32)
-    return (int)_read(fd, ptr, len);
+    return (int)_read(fd, ptr, (int) len);
 #else
-    return (int)read(fd, ptr, len);
+    return (int)read(fd, ptr, (int) len);
 #endif
 }
 

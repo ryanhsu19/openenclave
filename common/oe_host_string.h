@@ -1,6 +1,8 @@
 // Copyright (c) Open Enclave SDK contributors.
 // Licensed under the MIT License.
 
+#pragma warning(disable: 4996)
+
 #ifndef _OE_HOST_STRING_H
 #define _OE_HOST_STRING_H
 

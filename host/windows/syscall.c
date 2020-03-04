@@ -17,12 +17,14 @@
 #include <io.h>
 #include <stdint.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 // clang-format off
 
 #include <winsock2.h>
 #include <windows.h>
 #include <Ws2def.h>
+#include <Ws2tcpip.h>
 #include <VersionHelpers.h>
 // clang-format on
 
@@ -919,7 +921,7 @@ ssize_t oe_syscall_send_ocall(
     ssize_t ret;
     _set_errno(0);
 
-    ret = send(_get_socket(sockfd), buf, len, flags);
+    ret = send(_get_socket(sockfd), buf, (int) len, flags);
     if (ret == SOCKET_ERROR)
     {
         _set_errno(_winsockerr_to_errno(WSAGetLastError()));
@@ -942,7 +944,7 @@ ssize_t oe_syscall_sendto_ocall(
     ret = sendto(
         _get_socket(sockfd),
         buf,
-        len,
+        (int) len,
         flags,
         (struct sockaddr*)src_addr,
         addrlen);
@@ -1488,13 +1490,23 @@ int oe_syscall_uname_ocall(struct oe_utsname* buf)
     // OE SDK is supported only on WindowsServer and Win10
     if (IsWindowsServer())
     {
-        sprintf(buf->sysname, "WindowsServer");
-        sprintf(buf->version, "2016OrAbove");
+		size_t ret_size;
+		
+		ret_size = sizeof("WindowsServer");
+        sprintf_s(buf->sysname, ret_size, "WindowsServer");
+		
+		ret_size = sizeof("2016OrAbove");
+        sprintf_s(buf->version, ret_size, "2016OrAbove");
     }
     else if (IsWindows10OrGreater())
     {
-        sprintf(buf->sysname, "Windows10OrGreater");
-        sprintf(buf->version, "10OrAbove");
+		size_t ret_size;
+		
+		ret_size = sizeof("Windows10OrGreater");
+        sprintf_s(buf->sysname, ret_size, "Windows10OrGreater");
+		
+		ret_size = sizeof("10OrAbove");
+        sprintf_s(buf->version, ret_size, "10OrAbove");
     }
 
     ret = 0;
