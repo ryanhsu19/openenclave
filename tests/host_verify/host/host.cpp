@@ -66,9 +66,9 @@ static bool _validate_file(const char* filename, bool assert)
 {
     FILE* fp = NULL;
 #ifdef _WIN32
-	fopen_s(&fp, filename, "rb");
+    fopen_s(&fp, filename, "rb");
 #else
-	fp = fopen(filename, "rb");
+    fp = fopen(filename, "rb");
 #endif
 
     if (assert)
@@ -93,7 +93,7 @@ static oe_result_t _verify_cert(const char* filename, bool pass)
 #ifdef _WIN32
     fopen_s(&fp, filename, "rb");
 #else
-	fp = fopen(filename, "rb");
+    fp = fopen(filename, "rb");
 #endif
     OE_TEST(fp != NULL);
 
@@ -140,9 +140,9 @@ static void _read_binary_file(
 {
     FILE* fp = NULL;
 #ifdef _WIN32
-	fopen_s(&fp, filename, "rb");
+    fopen_s(&fp, filename, "rb");
 #else
-	fp = fopen(filename, "rb");
+    fp = fopen(filename, "rb");
 #endif
     size_t size = 0;
     uint8_t* data = NULL;

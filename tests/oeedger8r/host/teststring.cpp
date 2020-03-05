@@ -229,7 +229,7 @@ void test_string_edl_ecalls(oe_enclave_t* enclave)
 #ifdef _WIN32
     sprintf_s(str, "%s", str_value);
 #else
-	sprintf(str, "%s", str_value);
+    sprintf(str, "%s", str_value);
 #endif
 
     // char*
@@ -248,7 +248,7 @@ void test_string_edl_ecalls(oe_enclave_t* enclave)
 #ifdef _WIN32
     sprintf_s(str, "%s", str_value);
 #else
-	sprintf(str, "%s", str_value);
+    sprintf(str, "%s", str_value);
 #endif
 
     // char* user check.

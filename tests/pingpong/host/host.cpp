@@ -51,7 +51,7 @@ int main(int argc, const char* argv[])
         argv[1], OE_ENCLAVE_TYPE_AUTO, flags, NULL, 0, &enclave);
     if (result != OE_OK)
     {
-		fprintf(stderr, "%s: cannot create enclave: %s\n", argv[0], argv[1]);
+        fprintf(stderr, "%s: cannot create enclave: %s\n", argv[0], argv[1]);
         return 1;
     }
 

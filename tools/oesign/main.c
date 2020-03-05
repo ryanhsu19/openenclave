@@ -1,6 +1,8 @@
 // Copyright (c) Open Enclave SDK contributors.
 // Licensed under the MIT License.
 
+#pragma warning(disable : 4996)
+
 #include <getopt.h>
 #include <openenclave/internal/elf.h>
 #include <openenclave/internal/mem.h>
@@ -14,7 +16,7 @@
 #include <sys/stat.h>
 #include "../host/sgx/enclave.h"
 
-#if defined(WIN32)
+#if defined(_WIN32)
 #define HAS_ENGINE_SUPPORT 0
 #else
 #define HAS_ENGINE_SUPPORT 1
@@ -90,9 +92,10 @@ static oe_result_t _update_and_write_signed_exe(
         }
 
 #ifdef _WIN32
-        if (fopen_s(&os, p, "wb") != 0)
+        // if (fopen_s(&os, p, "wb") != 0)
+        if ((os = fopen(p, "wb")) == NULL)
 #else
-	    if ((os = fopen(p, "wb")) == NULL)
+        if ((os = fopen(p, "wb")) == NULL)
 #endif
         {
             Err("failed to open: %s", p);
@@ -194,9 +197,10 @@ static int _load_config_file(const char* path, ConfigFileOptions* options)
     size_t line = 1;
 
 #ifdef _WIN32
-    if (fopen_s(&is, path, "rb") != 0)
+    // if (fopen_s(&is, path, "rb") != 0)
+    if ((is = fopen(path, "rb")) == NULL)
 #else
-	if ((is = fopen(path, "rb")) == NULL)
+    if ((is = fopen(path, "rb")) == NULL)
 #endif
         goto done;
 
@@ -355,11 +359,12 @@ static int _load_pem_file(const char* path, void** data, size_t* size)
     if (!(*data = (uint8_t*)malloc(*size + 1)))
         goto done;
 
-    /* Open the file */
+        /* Open the file */
 #ifdef _WIN32
-    if (fopen_s(&is, path, "rb") != 0)
+    // if (fopen_s(&is, path, "rb") != 0)
+    if ((is = fopen(path, "rb")) == NULL)
 #else
-	if ((is = fopen(path, "rb")) == NULL)
+    if ((is = fopen(path, "rb")) == NULL)
 #endif
         goto done;
 
@@ -799,6 +804,7 @@ int sign_parser(int argc, const char* argv[])
     {
         c = getopt_long(
             argc, (char* const*)argv, short_options, long_options, NULL);
+
         if (c == -1)
         {
             // all the command-line options are parsed

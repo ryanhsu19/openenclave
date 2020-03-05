@@ -242,14 +242,14 @@ oe_result_t oe_datetime_now(oe_datetime_t* value)
     if ((timeinfo = gmtime_r(&now, timeinfo)) != NULL)
 #endif
     {
-		value->year = (uint32_t)timeinfo->tm_year + 1900;
-		value->month = (uint32_t)timeinfo->tm_mon + 1;
-		value->day = (uint32_t)timeinfo->tm_mday;
-		value->hours = (uint32_t)timeinfo->tm_hour;
-		value->minutes = (uint32_t)timeinfo->tm_min;
-		value->seconds = (uint32_t)timeinfo->tm_sec;
-        
-		result = OE_OK;
+        value->year = (uint32_t)timeinfo->tm_year + 1900;
+        value->month = (uint32_t)timeinfo->tm_mon + 1;
+        value->day = (uint32_t)timeinfo->tm_mday;
+        value->hours = (uint32_t)timeinfo->tm_hour;
+        value->minutes = (uint32_t)timeinfo->tm_min;
+        value->seconds = (uint32_t)timeinfo->tm_sec;
+
+        result = OE_OK;
     }
 done:
     return result;

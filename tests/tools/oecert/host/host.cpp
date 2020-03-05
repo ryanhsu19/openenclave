@@ -209,7 +209,11 @@ static oe_result_t _gen_report(
             size_t collaterals_size = 0;
             oe_report_header_t* header = (oe_report_header_t*)remote_report;
 #ifdef _WIN32
-            sprintf_s(collateral_filename, sizeof(collateral_filename), "%s.col", report_filename);
+            sprintf_s(
+                collateral_filename,
+                sizeof(collateral_filename),
+                "%s.col",
+                report_filename);
 #else
             sprintf(collateral_filename, "%s.col", report_filename);
 #endif
@@ -231,7 +235,7 @@ static oe_result_t _gen_report(
 #ifdef _WIN32
             fopen_s(&col_fp, collateral_filename, "wb");
 #else
-			col_fp = fopen(collateral_filename, "wb");
+            col_fp = fopen(collateral_filename, "wb");
 #endif
             if (!col_fp)
             {
@@ -297,7 +301,7 @@ static int _parse_args(int argc, const char* argv[])
     _params.out_filename = "out.bin";
 
     // Verify enclave file is valid
-	FILE* fp = NULL;
+    FILE* fp = NULL;
 #ifdef _WIN32
     fopen_s(&fp, _params.enclave_filename, "rb");
 #else
@@ -373,7 +377,7 @@ static int _parse_args(int argc, const char* argv[])
 
     if (_params.gen_cert && _params.gen_report)
     {
-		printf("Please specify to generate a certificate or a report.\n");
+        printf("Please specify to generate a certificate or a report.\n");
         return 1;
     }
 

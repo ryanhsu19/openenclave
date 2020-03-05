@@ -921,7 +921,7 @@ ssize_t oe_syscall_send_ocall(
     ssize_t ret;
     _set_errno(0);
 
-    ret = send(_get_socket(sockfd), buf, (int) len, flags);
+    ret = send(_get_socket(sockfd), buf, (int)len, flags);
     if (ret == SOCKET_ERROR)
     {
         _set_errno(_winsockerr_to_errno(WSAGetLastError()));
@@ -944,7 +944,7 @@ ssize_t oe_syscall_sendto_ocall(
     ret = sendto(
         _get_socket(sockfd),
         buf,
-        (int) len,
+        (int)len,
         flags,
         (struct sockaddr*)src_addr,
         addrlen);

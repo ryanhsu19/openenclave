@@ -193,9 +193,9 @@ static int _parse_args(int argc, const char* argv[])
     // Verify enclave file is valid
     FILE* fp = NULL;
 #ifdef _WIN32
-	fopen_s(&fp, _params.enclave_filename, "rb");
+    fopen_s(&fp, _params.enclave_filename, "rb");
 #else
-	fp = fopen(_params.enclave_filename, "rb");
+    fp = fopen(_params.enclave_filename, "rb");
 #endif
     if (!fp)
     {
@@ -291,9 +291,9 @@ int main(int argc, const char* argv[])
     // Create log file
     log_file = NULL;
 #ifdef _WIN32
-	fopen_s(&log_file, _params.out_filename, "w");
+    fopen_s(&log_file, _params.out_filename, "w");
 #else
-	log_file = fopen(_params.out_filename, "w");
+    log_file = fopen(_params.out_filename, "w");
 #endif
     if (!log_file)
     {

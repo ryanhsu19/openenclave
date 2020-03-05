@@ -34,7 +34,7 @@ char* find_data_file(char* str, size_t size)
 #ifdef _WIN32
     strncat_s(str, sizeof(str), tail, strlen(tail));
 #else
-	strncat(str, tail, strlen(tail));
+    strncat(str, tail, strlen(tail));
 #endif
     printf("######## data_file: %s ###### \n", token);
     return token;

@@ -29,12 +29,12 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <openenclave/bits/result.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "getopt.h"
-#include <openenclave/bits/result.h>
 
 int opterr = 1;   /* if error message should be printed */
 int optind = 1;   /* index into parent argv vector */

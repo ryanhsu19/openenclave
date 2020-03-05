@@ -33,7 +33,8 @@ int main(int argc, const char* argv[])
     {
         int ret_val = -1;
 #ifdef _WIN32
-        result = enc_set_thread_variable(enclave, &ret_val, _strdup("TSD-DATA"));
+        result =
+            enc_set_thread_variable(enclave, &ret_val, _strdup("TSD-DATA"));
 #else
         result = enc_set_thread_variable(enclave, &ret_val, strdup("TSD-DATA"));
 #endif

@@ -203,9 +203,12 @@ static bool _escape_characters(
                     }
 #ifdef _WIN32
                     sprintf_s(
-                        (char*)&log_msg_escaped[idx], sizeof(log_msg[i]), "u%04hhx", log_msg[i]);
+                        (char*)&log_msg_escaped[idx],
+                        sizeof(log_msg[i]),
+                        "u%04hhx",
+                        log_msg[i]);
 #else
-	                sprintf(
+                    sprintf(
                         (char*)&log_msg_escaped[idx], "u%04hhx", log_msg[i]);
 #endif
                     // idx is also incremented after switch case
@@ -322,7 +325,7 @@ void oe_log_message(bool is_enclave, oe_log_level_t level, const char* message)
 #else
     time_t lt = time(NULL);
     struct tm* t = NULL;
-	gmtime_s(t, &lt);
+    gmtime_s(t, &lt);
 #endif
 
     char time[20];

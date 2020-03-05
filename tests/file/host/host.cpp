@@ -1,7 +1,7 @@
 // Copyright (c) Open Enclave SDK contributors.
 // Licensed under the MIT License.
 
-#pragma warning(disable: 4996)
+#pragma warning(disable : 4996)
 
 #include <limits.h>
 #include <openenclave/host.h>

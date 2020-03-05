@@ -13,7 +13,7 @@ oe_result_t read_cert(char* filename, char* cert)
 #ifdef _WIN32
     if (fopen_s(&cfp, filename, "rb") == 0)
 #else
-	if ((cfp = fopen(filename, "rb")) != NULL)
+    if ((cfp = fopen(filename, "rb")) != NULL)
 #endif
     {
         len_cert = fread(cert, sizeof(char), max_cert_size, cfp);
@@ -35,22 +35,22 @@ oe_result_t read_chain(
 {
     size_t len_cert1 = 0, len_cert2 = 0;
     char chain_temp[max_cert_size];
-	FILE* cfp1;
-	FILE* cfp2;
-	
+    FILE* cfp1;
+    FILE* cfp2;
+
 #ifdef _WIN32
     if (fopen_s(&cfp1, filename1, "rb") != 0)
 #else
-	if ((cfp1 = fopen(filename1, "rb")) == NULL)
+    if ((cfp1 = fopen(filename1, "rb")) == NULL)
 #endif
-	{
-		return OE_FAILURE;
-	}
+    {
+        return OE_FAILURE;
+    }
 
 #ifdef _WIN32
     if (fopen_s(&cfp2, filename2, "rb") == 0)
 #else
-	if ((cfp2 = fopen(filename2, "rb")) != NULL)
+    if ((cfp2 = fopen(filename2, "rb")) != NULL)
 #endif
     {
         len_cert1 = fread(chain, sizeof(char), max_cert_size, cfp1);
@@ -86,25 +86,25 @@ oe_result_t read_chains(
 #ifdef _WIN32
     if (fopen_s(&cfp1, filename1, "rb") != 0)
 #else
-	if ((cfp1 = fopen(filename1, "rb")) == NULL)
+    if ((cfp1 = fopen(filename1, "rb")) == NULL)
 #endif
-	{
-		return OE_FAILURE;
-	}
-	
+    {
+        return OE_FAILURE;
+    }
+
 #ifdef _WIN32
     if (fopen_s(&cfp2, filename2, "rb") != 0)
 #else
-	if ((cfp2 = fopen(filename2, "rb")) == NULL)
+    if ((cfp2 = fopen(filename2, "rb")) == NULL)
 #endif
-	{
-		return OE_FAILURE;
-	}
-	
+    {
+        return OE_FAILURE;
+    }
+
 #ifdef _WIN32
     if (fopen_s(&cfp3, filename3, "rb") == 0)
 #else
-	if ((cfp3 = fopen(filename3, "rb")) != NULL)
+    if ((cfp3 = fopen(filename3, "rb")) != NULL)
 #endif
     {
         len_cert1 = fread(chain, sizeof(char), max_cert_size, cfp1);
@@ -134,7 +134,7 @@ oe_result_t read_crl(char* filename, uint8_t* crl, size_t* crl_size)
 #ifdef _WIN32
     if (fopen_s(&cfp, filename, "rb") == 0)
 #else
-	if ((cfp = fopen(filename, "rb")) != NULL)
+    if ((cfp = fopen(filename, "rb")) != NULL)
 #endif
     {
         len_crl = fread(crl, sizeof(char), max_cert_size, cfp);
@@ -158,7 +158,7 @@ oe_result_t read_dates(char* filename, oe_datetime_t* time)
 #ifdef _WIN32
     if (fopen_s(&dfp, filename, "rb") == 0)
 #else
-	if ((dfp = fopen(filename, "rb")) != NULL)
+    if ((dfp = fopen(filename, "rb")) != NULL)
 #endif
     {
         len_date = fread(buffer, sizeof(char), max_date_size, dfp);
@@ -180,7 +180,7 @@ oe_result_t read_dates(char* filename, oe_datetime_t* time)
         &(time->minutes),
         &(time->seconds));
 #else
-	sscanf(
+    sscanf(
         buffer,
         "%u :%u :%u :%u :%u :%u",
         &(time->year),
@@ -263,7 +263,7 @@ oe_result_t read_mod(char* filename, uint8_t* mod, size_t* mod_size)
 #ifdef _WIN32
     if (fopen_s(&mfp, filename, "rb") == 0)
 #else
-	if ((mfp = fopen(filename, "rb")) != NULL)
+    if ((mfp = fopen(filename, "rb")) != NULL)
 #endif
     {
         numchars = fread(buffer, sizeof(char), max_mod_size * 2, mfp);
@@ -314,7 +314,7 @@ oe_result_t read_sign(char* filename, uint8_t* sign, size_t* sign_size)
 #ifdef _WIN32
     if (fopen_s(&sfp, filename, "rb") == 0)
 #else
-	if ((sfp = fopen(filename, "rb")) != NULL)
+    if ((sfp = fopen(filename, "rb")) != NULL)
 #endif
     {
         len_sign = fread(sign, sizeof(char), max_sign_size, sfp);
@@ -351,7 +351,7 @@ oe_result_t read_pem_key(
 #ifdef _WIN32
     if (fopen_s(&stream, filename, "rb") != 0)
 #else
-	if ((stream = fopen(filename, "rb")) == NULL)
+    if ((stream = fopen(filename, "rb")) == NULL)
 #endif
     {
         result = OE_FAILURE;
@@ -398,7 +398,7 @@ oe_result_t read_coordinates(
 #ifdef _WIN32
     if (fopen_s(&cfp, filename, "rb") == 0)
 #else
-	if ((cfp = fopen(filename, "rb")) != NULL)
+    if ((cfp = fopen(filename, "rb")) != NULL)
 #endif
     {
         len_x = fread(x, sizeof(char), max_coordinates_size, cfp);

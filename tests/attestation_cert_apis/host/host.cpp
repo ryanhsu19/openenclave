@@ -98,7 +98,7 @@ void run_test(oe_enclave_t* enclave, int test_type)
 #ifdef _WIN32
         sprintf_s(
 #else
-	    sprintf(
+        sprintf(
 #endif
             filename,
             "./cert_%s.der",
