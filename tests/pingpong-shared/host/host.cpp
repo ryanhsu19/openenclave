@@ -9,6 +9,10 @@
 #include <openenclave/internal/types.h>
 #include "pingpong_u.h"
 
+#ifndef _WIN32
+#define strcpy(out, out_length, in) strcpy(out, in)
+#endif
+
 static bool got_pong = false;
 
 void Log(const char* str, uint64_t x)
@@ -26,12 +30,7 @@ void Pong(const char* in, char* out, int out_length)
         {
             got_pong = true;
         }
-#ifdef _WIN32
         strcpy_s(out, out_length, in);
-#else
-	    (void) out_length;
-	    strcpy(out, in);
-#endif
     }
 }
 
@@ -58,11 +57,7 @@ OE_EXPORT int main_shared(int argc, const char* argv[])
         return 1;
     }
 
-#ifdef _WIN32
     strcpy_s(buf, sizeof(buf), "String2");
-#else
-	strcpy(buf, "String2");
-#endif
     result = Ping(enclave, "String1", buf, sizeof(buf));
     if (result != OE_OK)
     {
