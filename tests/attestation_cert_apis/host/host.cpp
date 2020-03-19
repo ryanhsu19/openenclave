@@ -97,11 +97,18 @@ void run_test(oe_enclave_t* enclave, int test_type)
         char filename[FILENAME_LENGTH];
         FILE* file = NULL;
 
+#ifdef _WIN32
         sprintf_s(
             filename,
             sizeof(filename),
             "./cert_%s.der",
             test_type == TEST_RSA_KEY ? "rsa" : "ec");
+#else
+	    sprintf(
+            filename,
+            "./cert_%s.der",
+            test_type == TEST_RSA_KEY ? "rsa" : "ec");
+#endif
         OE_TRACE_INFO(
             "Host: Log quote embedded certificate to file: [%s]\n", filename);
         fopen_s(&file, filename, "wb");

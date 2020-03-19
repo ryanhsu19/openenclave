@@ -17,6 +17,10 @@
 #include <unistd.h>
 #endif
 
+#if !defined(_WIN32)
+#define _getpid getpid
+#endif
+
 #include "libunwind_u.h"
 
 void Test(oe_enclave_t* enclave, uint32_t pid)

@@ -7,7 +7,6 @@
 
 #include <assert.h>
 #include <fcntl.h>
-#include <io.h>
 #include <openenclave/host.h>
 #include <openenclave/internal/trace.h>
 #include <stdio.h>

@@ -12,6 +12,10 @@
 
 #define SKIP_RETURN_CODE 2
 
+#if !defined(_WIN32)
+#define _strdup strdup
+#endif
+
 int main(int argc, const char* argv[])
 {
     if (argc != 2)

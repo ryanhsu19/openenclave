@@ -202,11 +202,18 @@ static bool _escape_characters(
                         log_msg_escaped[idx] = '\0';
                         return false;
                     }
+#ifdef _WIN32
                     sprintf_s(
                         (char*)&log_msg_escaped[idx],
                         msg_size - idx,
                         "u%04hhx",
                         log_msg[i]);
+#else
+	                sprintf(
+                        (char*)&log_msg_escaped[idx],
+                        "u%04hhx",
+                        log_msg[i]);
+#endif
                     // idx is also incremented after switch case
                     idx += MAX_ESCAPED_CHAR_LEN - 1;
                     break;

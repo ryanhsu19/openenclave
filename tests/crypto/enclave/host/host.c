@@ -3,7 +3,6 @@
 
 #include <assert.h>
 #include <fcntl.h>
-#include <io.h>
 #include <limits.h>
 #include <openenclave/host.h>
 #include <openenclave/internal/error.h>
@@ -59,7 +58,11 @@ int f_openat(int dirfd, char* path, int flags, int mode)
 
 int f_read(int fd, char* ptr, size_t len)
 {
+#if defined(_WIN32)
     return (int)read(fd, ptr, (int)len);
+#else
+	return (int)read(fd, ptr, len);
+#endif
 }
 
 int f_close(int fd)

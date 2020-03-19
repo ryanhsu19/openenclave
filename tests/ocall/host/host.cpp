@@ -10,6 +10,10 @@
 #include <cstring>
 #include "ocall_u.h"
 
+#if !defined(_WIN32)
+#define _strdup strdup
+#endif
+
 uint64_t host_my_ocall(uint64_t val)
 {
     return val * MY_OCALL_MULTIPLIER;

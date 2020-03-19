@@ -22,6 +22,8 @@
 
 #if defined(__linux__)
 
+#define sscanf_s sscanf
+
 double get_relative_time_in_microseconds()
 {
     struct timespec current_time;
