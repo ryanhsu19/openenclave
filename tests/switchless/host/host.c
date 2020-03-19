@@ -73,7 +73,11 @@ int host_echo_regular(
     OE_TEST(strcmp(str1, "host string parameter") == 0);
     OE_TEST(strcmp(str2, "host string on stack") == 0);
 
+#ifdef _WIN32
     strcpy_s(out, STRING_LEN, in);
+#else
+	strcpy(out, in);
+#endif
 
     return 0;
 }
