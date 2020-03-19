@@ -23,6 +23,7 @@
 #if defined(__linux__)
 
 #define sscanf_s sscanf
+#define strcpy_s(out, out_length, in) strcpy(out, in)
 
 double get_relative_time_in_microseconds()
 {

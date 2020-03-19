@@ -11,6 +11,10 @@
 #include <wchar.h>
 #include "all_u.h"
 
+#ifndef _WIN32
+#define sprintf_s(buffer, buffer_size, format, ...) sprintf(buffer, format, ...)
+#endif
+
 oe_result_t ecall_string_no_null_terminator_modified(
     oe_enclave_t* enclave,
     char* s1,

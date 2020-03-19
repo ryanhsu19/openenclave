@@ -18,6 +18,11 @@
 #include <Windows.h>
 #endif
 
+#ifndef _WIN32
+#define fopen_s(file, filename, mode) (*(file))=fopen(filename, mode)
+#define sprintf_s(buffer, buffer_size, format, ...) sprintf(buffer, format, ...)
+#endif
+
 #define TEST_EC_KEY 0
 #define TEST_RSA_KEY 1
 #define SKIP_RETURN_CODE 2
@@ -97,25 +102,14 @@ void run_test(oe_enclave_t* enclave, int test_type)
         char filename[FILENAME_LENGTH];
         FILE* file = NULL;
 
-#ifdef _WIN32
         sprintf_s(
             filename,
             sizeof(filename),
             "./cert_%s.der",
             test_type == TEST_RSA_KEY ? "rsa" : "ec");
-#else
-	    sprintf(
-            filename,
-            "./cert_%s.der",
-            test_type == TEST_RSA_KEY ? "rsa" : "ec");
-#endif
         OE_TRACE_INFO(
             "Host: Log quote embedded certificate to file: [%s]\n", filename);
-#ifdef _WIN32
         fopen_s(&file, filename, "wb");
-#else
-	    file = fopen(filename, "wb");
-#endif
         fwrite(cert, 1, cert_size, file);
         fclose(file);
     }

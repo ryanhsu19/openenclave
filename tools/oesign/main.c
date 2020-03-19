@@ -20,6 +20,10 @@
 #define HAS_ENGINE_SUPPORT 1
 #endif
 
+#if !defined(WIN32)
+#define fopen_s(file, filename, mode) (*(file))=fopen(filename, mode)
+#endif
+
 static const char* arg0;
 int oedump(const char*);
 int oesign(
@@ -89,11 +93,7 @@ static oe_result_t _update_and_write_signed_exe(
             goto done;
         }
 
-#ifdef _WIN32
         if (fopen_s(&os, p, "wb") != 0)
-#else
-	    if ((os = fopen(p, "wb")) == NULL)
-#endif
         {
             Err("failed to open: %s", p);
             goto done;
@@ -193,11 +193,7 @@ static int _load_config_file(const char* path, ConfigFileOptions* options)
     str_t rhs = STR_NULL_INIT;
     size_t line = 1;
 
-#ifdef _WIN32
     if (fopen_s(&is, path, "rb") != 0)
-#else
-	if ((is = fopen(path, "rb")) == NULL)
-#endif
         goto done;
 
     if (str_dynamic(&str, NULL, 0) != 0)
@@ -356,11 +352,7 @@ static int _load_pem_file(const char* path, void** data, size_t* size)
         goto done;
 
     /* Open the file */
-#ifdef _WIN32
     if (fopen_s(&is, path, "rb") != 0)
-#else
-	if ((is = fopen(path, "rb")) == NULL)
-#endif
         goto done;
 
     /* Read file into memory */

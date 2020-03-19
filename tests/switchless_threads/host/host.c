@@ -15,6 +15,10 @@
 #include "../../../host/hostthread.h"
 #include "switchless_threads_u.h"
 
+#ifndef _WIN32
+#define strcpy_s(out, out_length, in) strcpy(out, in)
+#endif
+
 // For SGX, the enclave supports up to 8 concurrent threads in it. We have
 // to reserve one for the main host thread (calling into enc_echo_multiple).
 // This leaves us 7 host threads to call into enc_echo_single.
