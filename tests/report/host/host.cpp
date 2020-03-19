@@ -19,10 +19,6 @@
 #include <Windows.h>
 #endif
 
-#if !defined(_WIN32)
-#define (fopen_s(file, filename, mode) != 0) (((*(file)) = fopen(filename, mode)) == NULL)
-#endif
-
 #define SKIP_RETURN_CODE 2
 
 extern void TestVerifyTCBInfo(
@@ -51,7 +47,11 @@ void generate_and_save_report(oe_enclave_t* enclave)
             &report_size) == OE_OK);
 
     FILE* file;
+#ifdef _WIN32
     fopen_s(&file, "./data/generated_report.bytes", "wb");
+#else
+	file = fopen("./data/generated_report.bytes", "wb");
+#endif
     fwrite(report, 1, report_size, file);
     fclose(file);
     oe_free_report(report);

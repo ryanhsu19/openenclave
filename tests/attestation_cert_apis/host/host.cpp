@@ -18,8 +18,7 @@
 #include <Windows.h>
 #endif
 
-#ifndef _WIN32
-#define (fopen_s(file, filename, mode) != 0) (((*(file)) = fopen(filename, mode)) == NULL)
+#if !defined(_WIN32)
 #define sprintf_s(buffer, buffer_size, format, arguments) sprintf(buffer, format, arguments)
 #endif
 
@@ -109,7 +108,7 @@ void run_test(oe_enclave_t* enclave, int test_type)
             test_type == TEST_RSA_KEY ? "rsa" : "ec");
         OE_TRACE_INFO(
             "Host: Log quote embedded certificate to file: [%s]\n", filename);
-#ifdef _WIN32
+#if defined(_WIN32)
         fopen_s(&file, filename, "wb");
 #else
         file = fopen(filename, "wb");
