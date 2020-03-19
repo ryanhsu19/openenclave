@@ -10,7 +10,7 @@
 #include "pingpong_u.h"
 
 #ifndef _WIN32
-#define strcpy(out, out_length, in) strcpy(out, in)
+#define strcpy_s(out, out_length, in) strcpy(out, in)
 #endif
 
 static bool got_pong = false;
