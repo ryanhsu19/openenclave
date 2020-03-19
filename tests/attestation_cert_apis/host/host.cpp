@@ -111,7 +111,11 @@ void run_test(oe_enclave_t* enclave, int test_type)
 #endif
         OE_TRACE_INFO(
             "Host: Log quote embedded certificate to file: [%s]\n", filename);
+#ifdef _WIN32
         fopen_s(&file, filename, "wb");
+#else
+	    file = fopen(filename, "wb");
+#endif
         fwrite(cert, 1, cert_size, file);
         fclose(file);
     }

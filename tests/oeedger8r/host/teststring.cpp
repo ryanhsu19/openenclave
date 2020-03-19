@@ -228,7 +228,11 @@ void test_string_edl_ecalls(oe_enclave_t* enclave)
     const char* str_value = "Hello, World\n";
 
     char str[STR_LENGTH];
+#ifdef _WIN32
     sprintf_s(str, sizeof(str), "%s", str_value);
+#else
+	sprintf(str, "%s", str_value);
+#endif
 
     // char*
     OE_TEST(ecall_string_fun1(enclave, str) == OE_OK);
@@ -243,7 +247,11 @@ void test_string_edl_ecalls(oe_enclave_t* enclave)
     OE_TEST(strcmp(str, "Goodbye\n") == 0);
 
     // Restore value.
+#ifdef _WIN32
     sprintf_s(str, sizeof(str), "%s", str_value);
+#else
+	sprintf(str, "%s", str_value);
+#endif
 
     // char* user check.
     OE_TEST(ecall_string_fun5(enclave, str) == OE_OK);

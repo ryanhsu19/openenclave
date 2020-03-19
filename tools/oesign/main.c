@@ -89,7 +89,11 @@ static oe_result_t _update_and_write_signed_exe(
             goto done;
         }
 
+#ifdef _WIN32
         if (fopen_s(&os, p, "wb") != 0)
+#else
+	    if ((os = fopen(p, "wb") == NULL)
+#endif
         {
             Err("failed to open: %s", p);
             goto done;
