@@ -34,7 +34,11 @@ char* find_data_file(char* str, size_t size)
         return token;
     }
 
+#ifdef _WIN32
     strncat_s(str, size, tail, strlen(tail));
+#else
+	strncat(str, tail, strlen(tail));
+#endif
     printf("######## data_file: %s ###### \n", token);
     return token;
 }
@@ -43,7 +47,11 @@ void datafileloc(char* data_file_name, char* path, int length)
 {
     char* tail = "../enc/";
 #ifdef PROJECT_DIR
+#ifdef _WIN32
     strcpy_s(path, length, PROJECT_DIR);
+#else
+    strcpy(path, PROJECT_DIR);
+#endif
 #else
     char* separator;
 
@@ -60,8 +68,13 @@ void datafileloc(char* data_file_name, char* path, int length)
 
     *separator = '\0'; /* separating string */
 #endif
+#ifdef _WIN32
     strcat_s(path, length, tail);
     strcat_s(path, length, data_file_name);
+#else
+	strcat(path, tail);
+    strcat(path, data_file_name);
+#endif
 
 #if defined(_WIN32)
     /* On Windows, replace forward slashes with backslashes in the path */
@@ -132,7 +145,11 @@ int main(int argc, const char* argv[])
 
     printf("=== %s: %s\n", argv[0], argv[1]);
 
+#ifdef _WIN32
     strcpy_s(temp, sizeof(temp), argv[1]);
+#else
+	strcpy(temp, argv[1]);
+#endif
 
     if (strstr(argv[1], "selftest"))
     {
