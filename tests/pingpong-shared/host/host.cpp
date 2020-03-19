@@ -26,7 +26,12 @@ void Pong(const char* in, char* out, int out_length)
         {
             got_pong = true;
         }
+#ifdef _WIN32
         strcpy_s(out, out_length, in);
+#else
+	    (void) out_length;
+	    strcpy(out, in);
+#endif
     }
 }
 

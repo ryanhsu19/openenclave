@@ -17,7 +17,12 @@ int host_echo(char* in, char* out, char* str1, char* str2, char* str3, int out_l
     OE_TEST(strcmp(str2, "oe_host_strdup2") == 0);
     OE_TEST(strcmp(str3, "oe_host_strdup3") == 0);
 
+#ifdef _WIN32
     strcpy_s(out, out_length, in);
+#else
+	(void) out_length;
+    strcpy(out, in);
+#endif
 
     return 0;
 }
