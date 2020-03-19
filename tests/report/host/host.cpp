@@ -19,8 +19,8 @@
 #include <Windows.h>
 #endif
 
-#ifndef _WIN32
-#define fopen_s(file, filename, mode) (*(file))=fopen(filename, mode)
+#if !defined(_WIN32)
+#define (fopen_s(file, filename, mode) != 0) (((*(file)) = fopen(filename, mode)) == NULL)
 #endif
 
 #define SKIP_RETURN_CODE 2

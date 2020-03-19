@@ -14,14 +14,14 @@
 #include <sys/stat.h>
 #include "../host/sgx/enclave.h"
 
-#if defined(WIN32)
+#if defined(_WIN32)
 #define HAS_ENGINE_SUPPORT 0
 #else
 #define HAS_ENGINE_SUPPORT 1
 #endif
 
-#if !defined(WIN32)
-#define fopen_s(file, filename, mode) (*(file))=fopen(filename, mode)
+#if !defined(_WIN32)
+#define (fopen_s(file, filename, mode) != 0) (((*(file)) = fopen(filename, mode)) == NULL)
 #endif
 
 static const char* arg0;
