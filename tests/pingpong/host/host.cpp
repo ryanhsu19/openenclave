@@ -58,7 +58,11 @@ int main(int argc, const char* argv[])
         return 1;
     }
 
+#ifdef _WIN32
     strcpy_s(buf, sizeof(buf), "String2");
+#else
+	strcpy(buf, "String2");
+#endif
     result = Ping(enclave, "String1", buf, sizeof(buf));
     if (result != OE_OK)
     {
