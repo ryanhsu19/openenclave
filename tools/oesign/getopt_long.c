@@ -50,7 +50,7 @@ size_t getenv_length; /* argument associated with getenv_s() */
 #define PRINT_ERROR \
     ((opterr) && ((*options != ':') || (IGNORE_FIRST && options[1] != ':')))
 #define IS_POSIXLY_CORRECT                                        \
-    (getenv_s(&getenv_length, NULL, 0, "POSIXLY_CORRECT") != 0 && \
+    (getenv_s(&getenv_length, NULL, 0, "POSIXLY_CORRECT") == 0 && \
      getenv_length != 0)
 #define PERMUTE (!IS_POSIXLY_CORRECT && !IGNORE_FIRST)
 
