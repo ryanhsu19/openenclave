@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 #include <openenclave/host.h>
+#include <openenclave/internal/datetime.h>
 #include <openenclave/internal/error.h>
 #include <openenclave/internal/hexdump.h>
 #include <openenclave/internal/tests.h>
@@ -44,8 +45,12 @@ void generate_and_save_report(oe_enclave_t* enclave)
             0,
             &report,
             &report_size) == OE_OK);
-
-    FILE* file = fopen("./data/generated_report.bytes", "wb");
+    FILE* file;
+#ifdef _WIN32
+    fopen_s(&file, "./data/generated_report.bytes", "wb");
+#else
+    file = fopen("./data/generated_report.bytes", "wb");
+#endif
     fwrite(report, 1, report_size, file);
     fclose(file);
     oe_free_report(report);
@@ -197,15 +202,16 @@ int main(int argc, const char* argv[])
 
     // Get current time and pass it to enclave.
     std::time_t t = std::time(0);
-    std::tm* tm = std::gmtime(&t);
+    std::tm tm;
+    gmtime_r(&t, &tm);
 
     // convert std::tm to oe_datetime_t
-    oe_datetime_t now = {(uint32_t)tm->tm_year + 1900,
-                         (uint32_t)tm->tm_mon + 1,
-                         (uint32_t)tm->tm_mday,
-                         (uint32_t)tm->tm_hour,
-                         (uint32_t)tm->tm_min,
-                         (uint32_t)tm->tm_sec};
+    oe_datetime_t now = {(uint32_t)tm.tm_year + 1900,
+                         (uint32_t)tm.tm_mon + 1,
+                         (uint32_t)tm.tm_mday,
+                         (uint32_t)tm.tm_hour,
+                         (uint32_t)tm.tm_min,
+                         (uint32_t)tm.tm_sec};
 
     test_minimum_issue_date(enclave, now);
 
