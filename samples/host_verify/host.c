@@ -2,6 +2,8 @@
 // Licensed under the MIT License.
 
 #include <errno.h>
+#include <openenclave/attestation/verifier.h>
+#include <openenclave/bits/evidence.h>
 #include <openenclave/host_verify.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -153,6 +155,49 @@ oe_result_t enclave_identity_verifier(oe_identity_t* identity, void* arg)
     return OE_OK;
 }
 
+oe_result_t sgx_enclave_claims_verifier(
+    oe_claim_t* claims,
+    size_t claim_length,
+    void* arg)
+{
+    (void)arg;
+
+    printf(
+        "Enclave certificate contains the following identity information:\n");
+
+    for (int claim_index = 0; claim_index < claim_length; claim_index++)
+    {
+        oe_claim_t* claim = &claims[claim_index];
+        if (strcmp(claim->name, OE_CLAIM_SECURITY_VERSION) == 0)
+        {
+            printf("identity.security_version = %d\n", *claim->value);
+        }
+        else if (strcmp(claim->name, OE_CLAIM_UNIQUE_ID) == 0)
+        {
+            printf("identity->unique_id:\n0x ");
+            for (int i = 0; i < 32; i++)
+                printf("%0x ", (uint8_t)claim->value[i]);
+            printf("\n");
+        }
+        else if (strcmp(claim->name, OE_CLAIM_SIGNER_ID) == 0)
+        {
+            printf("identity->signer_id:\n0x ");
+            for (int i = 0; i < 32; i++)
+                printf("%0x ", (uint8_t)claim->value[i]);
+            printf("\n");
+        }
+        else if (strcmp(claim->name, OE_CLAIM_PRODUCT_ID) == 0)
+        {
+            printf("identity->product_id:\n0x ");
+            for (int i = 0; i < 32; i++)
+                printf("%0x ", (uint8_t)claim->value[i]);
+            printf("\n");
+        }
+    }
+
+    return OE_OK;
+}
+
 oe_result_t verify_cert(const char* filename)
 {
     oe_result_t result = OE_FAILURE;
@@ -161,8 +206,8 @@ oe_result_t verify_cert(const char* filename)
 
     if (read_binary_file(filename, &cert_data, &cert_file_size))
     {
-        result = oe_verify_attestation_certificate(
-            cert_data, cert_file_size, enclave_identity_verifier, NULL);
+        result = oe_verify_attestation_certificate_with_evidence(
+            cert_data, cert_file_size, sgx_enclave_claims_verifier, NULL);
     }
 
     if (cert_data != NULL)

@@ -15,6 +15,7 @@
 #error "enclave.h must not be in the same compilation unit as host_verify.h"
 #endif
 
+#include "attestation/verifier.h"
 #include "bits/defs.h"
 #include "bits/evidence.h"
 #include "bits/report.h"
