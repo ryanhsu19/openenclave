@@ -6,6 +6,11 @@
 OE_CRYPTO_LIB := mbedtls
 export OE_CRYPTO_LIB
 
+ifeq ($(SGX_AESM_ADDR),)
+  SGX_AESM_ADDR := 1
+  export SGX_AESM_ADDR
+endif
+
 all: build
 
 build:
