@@ -262,11 +262,22 @@ oe_result_t verify_cert(const char* filename)
     oe_result_t result = OE_FAILURE;
     size_t cert_file_size = 0;
     uint8_t* cert_data = NULL;
+    uint8_t* endorsements_buffer = NULL;
+    size_t endorsements_buffer_size = 0;
+    oe_policy_t* policies = NULL;
+    size_t policies_size = 0;
 
     if (read_binary_file(filename, &cert_data, &cert_file_size))
     {
-        result = oe_verify_attestation_certificate_with_evidence(
-            cert_data, cert_file_size, sgx_enclave_claims_verifier, NULL);
+        result = oe_verify_attestation_certificate_with_evidence_v2(
+            cert_data,
+            cert_file_size,
+            endorsements_buffer,
+            endorsements_buffer_size,
+            policies,
+            policies_size,
+            sgx_enclave_claims_verifier,
+            NULL);
     }
 
     if (cert_data != NULL)

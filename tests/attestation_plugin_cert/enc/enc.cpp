@@ -151,6 +151,11 @@ oe_result_t get_tls_cert_signed_with_key(
     size_t optional_parameters_size = 0;
     const oe_uuid_t format = {OE_FORMAT_UUID_SGX_ECDSA};
 
+    uint8_t* endorsements_buffer = NULL;
+    size_t endorsements_buffer_size = 0;
+    oe_policy_t* policies = NULL;
+    size_t policies_size = 0;
+
     OE_TRACE_INFO("called into enclave\n");
 
     // generate public/private key pair
@@ -198,8 +203,15 @@ oe_result_t get_tls_cert_signed_with_key(
 
     oe_verifier_initialize();
     // validate cert inside the enclave
-    result = oe_verify_attestation_certificate_with_evidence(
-        output_cert, output_cert_size, sgx_enclave_claims_verifier, nullptr);
+    result = oe_verify_attestation_certificate_with_evidence_v2(
+        output_cert,
+        output_cert_size,
+        endorsements_buffer,
+        endorsements_buffer_size,
+        policies,
+        policies_size,
+        sgx_enclave_claims_verifier,
+        nullptr);
     OE_TRACE_INFO(
         "\nFrom inside enclave: verifying the certificate... %s\n",
         result == OE_OK ? "Success" : "Fail");

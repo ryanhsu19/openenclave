@@ -32,6 +32,10 @@ int cert_verify_callback(
     int ret = 1;
     unsigned char* cert_buf = NULL;
     size_t cert_size = 0;
+    uint8_t* endorsements_buffer = NULL;
+    size_t endorsements_buffer_size = 0;
+    oe_policy_t* policies = NULL;
+    size_t policies_size = 0;
 
     (void)data;
 
@@ -49,13 +53,20 @@ int cert_verify_callback(
     if (cert_size <= 0)
         goto exit;
 
-    result = oe_verify_attestation_certificate_with_evidence(
-        cert_buf, cert_size, enclave_claims_verifier_callback, NULL);
+    result = oe_verify_attestation_certificate_with_evidence_v2(
+        cert_buf,
+        cert_size,
+        endorsements_buffer,
+        endorsements_buffer_size,
+        policies,
+        policies_size,
+        enclave_claims_verifier_callback,
+        NULL);
     if (result != OE_OK)
     {
         printf(
             TLS_ENCLAVE
-            "oe_verify_attestation_certificate_with_evidence failed "
+            "oe_verify_attestation_certificate_with_evidence_v2 failed "
             "with result = %s\n",
             oe_result_str(result));
         goto exit;

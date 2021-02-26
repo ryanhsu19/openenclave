@@ -79,6 +79,10 @@ void run_test(oe_enclave_t* enclave, int test_type)
     oe_result_t ecall_result;
     unsigned char* cert = nullptr;
     size_t cert_size = 0;
+    uint8_t* endorsements_buffer = NULL;
+    size_t endorsements_buffer_size = 0;
+    oe_policy_t* policies = NULL;
+    size_t policies_size = 0;
 
     OE_TRACE_INFO(
         "Host: get tls certificate signed with %s key from an enclave \n",
@@ -126,8 +130,15 @@ void run_test(oe_enclave_t* enclave, int test_type)
     // validate cert
     OE_TRACE_INFO("Host: Verifying tls certificate\n");
     OE_TRACE_INFO("Host: cert = %p cert_size = %d\n", cert, cert_size);
-    result = oe_verify_attestation_certificate_with_evidence(
-        cert, cert_size, sgx_enclave_claims_verifier, nullptr);
+    result = oe_verify_attestation_certificate_with_evidence_v2(
+        cert,
+        cert_size,
+        endorsements_buffer,
+        endorsements_buffer_size,
+        policies,
+        policies_size,
+        sgx_enclave_claims_verifier,
+        nullptr);
     OE_TRACE_INFO(
         "Host: Verifying the certificate from a host ... %s\n",
         result == OE_OK ? "Success" : "Fail");

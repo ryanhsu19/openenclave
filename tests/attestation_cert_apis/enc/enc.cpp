@@ -185,6 +185,11 @@ oe_result_t get_tls_cert_signed_with_key(
     uint8_t* public_key = nullptr;
     size_t public_key_size = 0;
 
+    uint8_t* endorsements_buffer = NULL;
+    size_t endorsements_buffer_size = 0;
+    oe_policy_t* policies = NULL;
+    size_t policies_size = 0;
+
     OE_TRACE_INFO("called into enclave\n");
 
     // generate public/private key pair
@@ -236,13 +241,20 @@ oe_result_t get_tls_cert_signed_with_key(
         goto done;
     }
 
-    // validate cert with oe_verify_attestation_certificate_with_evidence() to
-    // ensure that the added report verifier part of the function works well
-    result = oe_verify_attestation_certificate_with_evidence(
-        output_cert, output_cert_size, sgx_enclave_claims_verifier, nullptr);
+    // validate cert with oe_verify_attestation_certificate_with_evidence_v2()
+    // to ensure that the added report verifier part of the function works well
+    result = oe_verify_attestation_certificate_with_evidence_v2(
+        output_cert,
+        output_cert_size,
+        endorsements_buffer,
+        endorsements_buffer_size,
+        policies,
+        policies_size,
+        sgx_enclave_claims_verifier,
+        nullptr);
     OE_TRACE_INFO(
         "\nFrom inside enclave: verifying the certificate with "
-        "oe_verify_attestation_certificate_with_evidence()... %s\n",
+        "oe_verify_attestation_certificate_with_evidence()_v2... %s\n",
         result == OE_OK ? "Success" : "Fail");
 
     // copy cert to host memory

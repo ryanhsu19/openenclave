@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - -Werror=<option>: Turn the specified warning into an error.
 
 ### Changed
-- oe_get_attestation_certificate_with_evidence() has been deprecated because it has been deemed insufficient for security. Use the new, experimental oe_get_attestation_certificate_with_evidence_v2() instead to generate a self-signed certificate for use in the TLS handshaking process.
+- `oe_get_attestation_certificate_with_evidence()` has been deprecated because it has been deemed insufficient for security. Use the new, experimental `oe_get_attestation_certificate_with_evidence_v2()` instead to generate a self-signed certificate for use in the TLS handshaking process. Likewise, use the new `oe_verify_attestation_certificate_with_evidence_v2()` instead of the deprecated `oe_verify_attestation_certificate_with_evidence()` to verify a self-signed certificate.
 
 
 [v0.14.0][v0.14.0_log]

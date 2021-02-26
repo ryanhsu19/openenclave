@@ -418,6 +418,27 @@ oe_result_t oe_verify_attestation_certificate_with_evidence(
     oe_verify_claims_callback_t claim_verify_callback,
     void* arg)
 {
+    return oe_verify_attestation_certificate_with_evidence_v2(
+        cert_in_der,
+        cert_in_der_len,
+        NULL,
+        0,
+        NULL,
+        0,
+        claim_verify_callback,
+        arg);
+}
+
+oe_result_t oe_verify_attestation_certificate_with_evidence_v2(
+    uint8_t* cert_in_der,
+    size_t cert_in_der_len,
+    uint8_t* endorsements_buffer,
+    size_t endorsements_buffer_size,
+    oe_policy_t* policies,
+    size_t policies_size,
+    oe_verify_claims_callback_t claim_verify_callback,
+    void* arg)
+{
     oe_result_t result = OE_FAILURE;
     oe_cert_t cert = {0};
     uint8_t* report = NULL;
@@ -504,10 +525,10 @@ oe_result_t oe_verify_attestation_certificate_with_evidence(
             NULL,
             report,
             report_size,
-            NULL,
-            0,
-            NULL,
-            0,
+            endorsements_buffer,
+            endorsements_buffer_size,
+            policies,
+            policies_size,
             &claims,
             &claims_length);
     }
@@ -519,10 +540,10 @@ oe_result_t oe_verify_attestation_certificate_with_evidence(
             &_uuid_legacy_report_remote,
             report,
             report_size,
-            NULL,
-            0,
-            NULL,
-            0,
+            endorsements_buffer,
+            endorsements_buffer_size,
+            policies,
+            policies_size,
             &claims,
             &claims_length);
     }
@@ -557,7 +578,7 @@ oe_result_t oe_verify_attestation_certificate_with_evidence(
     {
         OE_TRACE_WARNING(
             "No claim_verify_callback provided in "
-            "oe_verify_attestation_certificate_with_evidence call",
+            "oe_verify_attestation_certificate_with_evidence_v2 call",
             NULL);
     }
 

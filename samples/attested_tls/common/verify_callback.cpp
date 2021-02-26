@@ -200,6 +200,10 @@ int verify_callback(int preverify_ok, X509_STORE_CTX* ctx)
     int der_len = 0;
     unsigned char* der = nullptr;
     unsigned char* buff = nullptr;
+    uint8_t* endorsements_buffer = NULL;
+    size_t endorsements_buffer_size = 0;
+    oe_policy_t* policies = NULL;
+    size_t policies_size = 0;
     oe_result_t result = OE_FAILURE;
     X509* crt = nullptr;
     int err = X509_V_ERR_UNSPECIFIED;
@@ -256,8 +260,15 @@ int verify_callback(int preverify_ok, X509_STORE_CTX* ctx)
     printf(" verifying certificate start \n");
     // verify tls certificate
     oe_verifier_initialize();
-    result = oe_verify_attestation_certificate_with_evidence(
-        der, der_len, enclave_claims_verifier, nullptr);
+    result = oe_verify_attestation_certificate_with_evidence_v2(
+        der,
+        der_len,
+        endorsements_buffer,
+        endorsements_buffer_size,
+        policies,
+        policies_size,
+        enclave_claims_verifier,
+        nullptr);
     if (result != OE_OK)
     {
         printf(TLS_CLIENT "result=%s\n", oe_result_str(result));
